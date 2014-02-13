@@ -43,7 +43,7 @@ function Game() {
     var hudHeight = hudCanvas.height;
 
     this.hud = new Hud(this, hudContext, hudWidth, hudHeight);
-    this.player = new Player(this.context, this.width/2, this.height-10, 10, 20, 10, colors.gradient, 50, 0, 0, 0.4, 0.4);
+    this.player = new Player(this.context, this.width/2, this.height-10, 10, 20, 10, colors.gradient, 50, 0, 0, 1.2, 1.2);//0.4, 0.4);
     this.playerAlive = true;
     this.enemies = [];
     this.projectiles = [];

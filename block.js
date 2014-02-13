@@ -4,7 +4,7 @@
  **
  **/
 
-var drag = 0.5;
+var drag = 1.5; //0.5;
 
 
 // Block class
@@ -248,8 +248,14 @@ Player.prototype.moveOut = function() {
 };
 
 Player.prototype.move = function(xMove, yMove) {
-  this.vX += this.aX*xMove - drag*this.vX / this.mass;
-  this.vY += this.aY*yMove - drag*this.vY / this.mass;
+  var len = 1;
+  if (xMove != 0 && yMove != 0)
+    len = Math.sqrt(xMove*xMove + yMove*yMove);
+  var xM = xMove / len;
+  var yM = yMove / len;
+
+  this.vX += this.aX*xM - drag*this.vX / this.mass;
+  this.vY += this.aY*yM - drag*this.vY / this.mass;
 
   Block.prototype.move.call(this);
 };
