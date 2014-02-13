@@ -135,8 +135,12 @@ function loadLevel(number) {
     var eRandS = new Random(context, width-20, 40, 20, 20, 20, "white", 3, -5, 5, 1, 1);
     
     var movers = [];
+    var mover = null;
     for (var x = 10; x <= width-40; x += (width-50)/10) {
-      movers.push(new Mover(context, x, 5, 30, 30, 100, colors.gradient, 5, 3, 1.5));
+      mover = new Mover(context, x, 5, 30, 30, 100, colors.gradient, 5, 3, 1.5);
+      mover.cycleLength = 60;
+      mover.addAction(60, ["fireLaser", 5, 15, 0, 3]);
+      movers.push(mover);
     }
    
     var waves = [];
@@ -169,12 +173,28 @@ function loadLevel(number) {
   }
   else if (number == 3) {
     var enemy = new Enemy(context, 5, 5, 100, 100, 100, colors.gradient, 100, 3, 0);
-    enemy.cycleLength = 720;
+    enemy.cycleLength = 741;
+    enemy.addAction(60, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(70, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(80, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(90, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(130, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(140, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(150, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(160, ["spawnStraight", 40, 60, 0, 5]); 
     enemy.addAction(180, ["setVal", "vY", 20]);
     enemy.addAction(360, ["setVal", "vY", -3]);
+    enemy.addAction(420, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(430, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(440, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(450, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(490, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(500, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(510, ["spawnStraight", 40, 60, 0, 5]); 
+    enemy.addAction(520, ["spawnStraight", 40, 60, 0, 5]); 
     enemy.addAction(540, ["setVal", "vX", 20]);
     enemy.addAction(720, ["setVal", "vX", -3]);
-    console.log(enemy.actions);
+    
     return new Level([levelMessage(3), {1:(new EWave([enemy])), 2:(new DWave())}]
 		     , [1,1], 0.5);
   }

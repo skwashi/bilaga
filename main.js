@@ -48,6 +48,7 @@ function Game() {
     this.enemies = [];
     this.projectiles = [];
     this.misc = [];
+    this.enemyProjectiles = [];
     this.numLevels = numLevels;
     this.level = null;
     this.levelNum = 0;
@@ -65,6 +66,7 @@ function Game() {
     this.enemies = [];
     this.projectiles = [];
     this.misc = [];
+    this.enemyProjectiles = [];
     this.level = level;
     this.levelCompleted = false;
     this.currentWave = null;
@@ -93,6 +95,10 @@ function Game() {
     this.projectiles = this.projectiles.concat(projectiles);
   }
 
+  this.addEProjectiles = function (projectiles) {
+    this.enemyProjectiles = this.enemyProjectiles.concat(projectiles);
+  }
+  
 }
 
 Game.prototype.pullNextWave = function () {
@@ -276,6 +282,22 @@ Game.prototype.update = function () {
     } else {
       enemy.draw();
       if (this.playerAlive && enemy.collide(this.player)) {
+	playerCollision = true;
+      }
+    }
+  }
+
+  var eproj = null;
+  // move and check for enemy projectiles;
+  for (var i = this.enemyProjectiles.length - 1; i >= 0; i--) {
+    eproj = this.enemyProjectiles[i];
+    eproj.move();
+    if (eproj.isGone()) {
+      this.enemyProjectiles.splice(i,1);
+      delete eproj;
+    } else {
+      eproj.draw();
+      if (this.playerAlive && eproj.collide(this.player)) {
 	playerCollision = true;
       }
     }

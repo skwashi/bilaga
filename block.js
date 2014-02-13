@@ -176,7 +176,6 @@ Block.prototype.takeDamage = function(damage) {
 
 Block.prototype.executeActions = function () {
   if (this.frame > this.cycleLength && this.cycleLength != 0) {
-    console.log("reset cycle");
     this.frame = 1;
   }
   if (this.actions.hasOwnProperty(this.frame)) {
@@ -185,6 +184,36 @@ Block.prototype.executeActions = function () {
   this.frame++;
 }
 
+Block.prototype.spawnEnemies = function(blocks) {
+  game.addEnemies(blocks);
+}
+
+Block.prototype.spawnProjectiles = function(projectiles) {
+  game.addProjectiles(blocks);
+}
+
+Block.prototype.spawnEProjectiles = function(projectiles) {
+  game.addEProjectiles(projectiles);
+}
+
+Block.prototype.spawnMisc = function(misc) {
+  game.addMisc(misc);
+}
+
+Block.prototype.spawnStraight = function(w, h, vX, vY) {
+  var enemy = new Straight(this.context, this.x, this.y, w, h, this.mass, this.color, this.health/10, vX, vY);
+  this.spawnEnemies([enemy]);
+}
+
+Block.prototype.fireLaser = function(w, h, vX, vY) {
+  var ok = Math.floor(Math.random()*2);
+  if (ok == 1) {
+    var x = this.x + this.w/2 + 1;
+    var y = this.y + this.h;
+    var laser = new Projectile(this.context, x, y, w, h, 0, "orange", 1, vX, vY, 0, 0);
+    this.spawnEProjectiles([laser]);
+  }
+}
 
 // Player class
 function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY) {
