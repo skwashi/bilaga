@@ -1,0 +1,17 @@
+body {
+    background-color: white;
+}
+
+#content {
+    position:absolute; 
+    top:50%; 
+    margin-top:-300px; 
+    left:50%; 
+    margin-left:-400px;
+}
+
+canvas {
+    position: absolute;
+    border: 1px solid #000;
+    background: transparent;
+}
