@@ -4,9 +4,6 @@
  **
  **/
 
-var drag = 1; //0.5;
-var accel = 1;
-
 // Block class
 function Block(context, x, y, w, h, solid, mass, color, health, vX, vY) {
   this.context = context;
@@ -140,6 +137,9 @@ Block.prototype.move = function() {
 
   this.x += this.vX;
   this.y += this.vY;
+
+  if (!this.solid)
+    this.y -= cam.vY;
   
   var leftlim = -cam.len+game.player.w/2;
   var rightlim = cwidth + cam.len - game.player.w;
@@ -213,7 +213,7 @@ Block.prototype.fireLaser = function(w, h, vX, vY) {
   if (ok == 1) {
     var x = this.x + this.w/2 + 1;
     var y = this.y + this.h;
-    var laser = new Projectile(this.context, x, y, w, h, 0, "orange", 1, vX, vY, 0, 0);
+    var laser = new Projectile(this.context, x, y, w, h, 0, "orange", 1, vX, vY+cam.vY, 0, 0);
     this.spawnEProjectiles([laser]);
   }
 }
@@ -304,11 +304,11 @@ Player.prototype.move = function(xMove, yMove) {
 Player.prototype.fire = function(type, xDir) {
   var projectile = null;
   if (type == "rocket") {
-    proj = [new Rocket(this.context, this.x, this.y, this.vX, this.vY, 0, -0.3)];//-0.075)];
+    proj = [new Rocket(this.context, this.x, this.y, this.vX, this.vY + cam.vY, 0, -0.3)];//-0.075)];
   } else if (type == "dualLaser") {
-    proj = [new Laser(this.context, this.x + 1, this.y - 1, 5*xDir, -10), new Laser(this.context, this.x + this.w - 3, this.y - 1, 5*xDir, -10)];
+    proj = [new Laser(this.context, this.x + 1, this.y - 1, 5*xDir, -10+cam.vY), new Laser(this.context, this.x + this.w - 3, this.y - 1, 5*xDir, -10+cam.vY)];
   } else {
-    proj = [new Laser(this.context, this.x + this.w/2 - 1, this.y - 1, 0, -10)];
+    proj = [new Laser(this.context, this.x + this.w/2 - 1, this.y - 1, 0, -10+cam.vY)];
   }
   return proj;
 };

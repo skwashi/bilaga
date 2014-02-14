@@ -18,11 +18,13 @@ function Hud(game, context, width, height) {
     this.clear();
     this.context.fillStyle = "white";
     this.context.textAlign = "start";
-    this.context.fillText("x: " + Math.round(player.x) + " vX: " + Math.round(player.vX*10)/10, 20, 2*this.height/4);
-    this.context.fillText("y: " + Math.round(player.y) + " vY: " + Math.round(player.vY*10)/10, 20, 3*this.height/4);
+    this.context.fillText("x: " + Math.round(player.x) + " vX: " + Math.round(player.vX*10)/10, 20, 2*this.height/5);
+    this.context.fillText("y: " + Math.round(player.y) + " vY: " + Math.round(player.vY*10)/10, 20, 3*this.height/5);
+    this.context.fillText("Level: " + game.levelNum, 20, 4*this.height/5);
     this.context.textAlign = "end";
-    this.context.fillText("Rockets: " + player.rockets, this.width - 20, 2*this.height/4);
-    this.context.fillText("Enemies: " + this.game.enemies.length, this.width - 20, 3*this.height/4);
+    this.context.fillText("Rockets: " + player.rockets, this.width - 20, 2*this.height/5);
+    this.context.fillText("Enemies: " + this.game.enemies.length, this.width - 20, 3*this.height/5);
+    this.context.fillText("Score: " + game.score, this.width - 20, 4*this.height/5);
   };
 }
 
@@ -31,7 +33,7 @@ function Hud(game, context, width, height) {
  * Game
  */
 function Game() {
-  this.init = function (numLevels) {
+  this.init = function (player, numLevels) {
     this.canvas = document.getElementById("canvas");
     this.context = this.canvas.getContext("2d");
     this.width = this.canvas.width;
@@ -43,7 +45,7 @@ function Game() {
     var hudHeight = hudCanvas.height;
 
     this.hud = new Hud(this, hudContext, hudWidth, hudHeight);
-    this.player = new Player(this.context, this.width/2, this.height-10, 10, 20, 10, "lime", 50, 0, 0, accel, accel);//0.4, 0.4);
+    this.player = player;
     this.playerAlive = true;
     this.enemies = [];
     this.projectiles = [];
@@ -58,6 +60,8 @@ function Game() {
     this.timeToWave = 0;
     this.waveFrame = 0;
     this.waveCleared = true;
+    this.score = 0;
+    this.scoreSaved = 0;
   };
   
   this.startLevel = function (level) {
@@ -89,6 +93,8 @@ function Game() {
 
   this.start = function () {
     this.loadLevel(1);
+    this.score = 0;
+    this.scoreSaved = 0;
   }
 
   this.addEnemies = function (enemies) {
@@ -124,6 +130,8 @@ Game.prototype.traverseWave = function () {
       this.addEnemies(wave.content);
     } else if (wave.type == "message") {
       messageLayer.setMessage(wave.content.message, wave.content.time);
+    } else if (wave.type == "speed") {
+      cam.vY = wave.content;
     } else if (wave.type == "done") {
       this.waveCleared = true;
     }
@@ -192,13 +200,18 @@ Game.prototype.interact = function () {
       player.cooldowns.laser = player.cd;
     }
   }
-  if ((keys["w"] || keys["e"]) && player.rockets > 0) {
+  if (keys["z"] && player.rockets > 0) {
     if (player.cooldowns.rocket == 0) {
       this.projectiles = this.projectiles.concat(player.fire("rocket", 0));
       player.cooldowns.rocket = player.cd;
       player.rockets -= 1;
     }
   }
+  
+  if (keys["e"])
+    cam.vY += (5*cam.defSpeed - cam.vY)/30;
+  else
+    cam.vY -= (cam.vY - cam.defSpeed)/15;
   
   if (keys["q"]) {
     if (this.enemies.length > 0 && player.cooldowns.rocket == 0) {
@@ -210,7 +223,7 @@ Game.prototype.interact = function () {
     }
   }
   
-  if (keys["z"]) {
+  if (keys["w"]) {
     if (player.cooldowns.rocket == 0) {
       this.loadLevel(this.levelNum+1);
       player.cooldowns.rocket = 5*player.cd;
@@ -224,6 +237,7 @@ Game.prototype.update = function () {
 
   // reset camera speed
   cam.vX = 0;
+      
   
   if (this.playerAlive) {
     // Wait for next wave if their are no remaining enemies.
@@ -247,6 +261,7 @@ Game.prototype.update = function () {
     messageLayer.gameOver();
     if (keys["space"]) {
       this.loadLevel(this.levelNum);
+      this.score = this.scoreSaved;
     }
   } else if (this.levelCompleted) {
     cam.vY = 5*cam.defSpeed;
@@ -255,8 +270,10 @@ Game.prototype.update = function () {
       if (keys["space"]) {
 	if (this.levelNum >= this.numLevels)
 	  this.start();
-	else
+	else {
 	  this.loadLevel(this.levelNum+1);
+	  this.scoreSaved = this.score;
+	}
       }
     } else {
       this.player.moveOut();
@@ -345,6 +362,7 @@ Game.prototype.update = function () {
 	  console.log("Enemy died!");
 	  this.enemies.splice(j,1);
 	  this.killEnemy(enemy);
+	  this.score++;
 	  delete enemy;
 	  break;
 	}
@@ -493,10 +511,22 @@ function Camera() {
   }
 }
 
+// coordinate system in which objects move
+function Grid() {
+  this.init = function (factor) {
+    this.width = 4/3 * cwidth;
+  }
+}
+
 var bgHandler = new BGHandler();
 var game = new Game();
 var messageLayer = new MessageLayer();
 var cam = new Camera();
+var grid = new Grid();
+
+var drag = 1; //0.5;
+var accel = 1;
+
 
 function render() {
   requestAnimationFrame(render);
@@ -507,9 +537,11 @@ function render() {
 }
 
 function init() {
+  var player = new Player(this.context, this.width/2, this.height-10, 10, 20, 10, "lime", 50, 0, 0, accel, accel);//0.4, 0.4);
+  grid.init(4/3);
   cam.init(1/4, 0, 0, 0, -5);
   bgHandler.init();
-  game.init(3);
+  game.init(player, 3);
   messageLayer.init();
   game.start();
   render();  

@@ -3,7 +3,8 @@
 var images = new function () {
   this.background = new Image();
   this.stars = new Image();
-  
+  this.marble = new Image();
+
   var numImages = 2;
   var numLoaded = 0;
 
@@ -24,8 +25,13 @@ var images = new function () {
     imageLoaded();
   }
   
-  this.background.src = "imgs/background.png";
-  this.stars.src = "imgs/stars.png";
+  this.marble.onload = function () {
+    imageLoaded();
+  }
+
+  this.background.src = "imgs/background2.png";
+  this.stars.src = "imgs/staars.png";
+  this.marble.src = "imgs/marble.png";
 };
 
 
@@ -44,6 +50,7 @@ function Background(context, canvasWidth, canvasHeight, image, speed) {
 Background.prototype.draw = function () {
   var cw = this.canvasWidth;
   var ch = this.canvasHeight;
+  var x = cam.len;
 
   if (this.offset > this.bg.height) {
     this.offset = 0;
@@ -53,12 +60,12 @@ Background.prototype.draw = function () {
   var offset = Math.floor(this.offset);
 
   if (offset == 0) {
-    this.context.drawImage(this.bg, xoffset, 0, cw, ch, 0, 0, cw, ch);
+    this.context.drawImage(this.bg, x+xoffset, 0, cw, ch, 0, 0, cw, ch);
   } else if (offset < ch) {
-    this.context.drawImage(this.bg, xoffset, 0, cw, ch-offset, 0, offset, cw, ch-offset);
-    this.context.drawImage(this.bg, xoffset, this.bg.height - offset, cw, offset, 0, 0, cw, offset);
+    this.context.drawImage(this.bg, x+xoffset, 0, cw, ch-offset, 0, offset, cw, ch-offset);
+    this.context.drawImage(this.bg, x+xoffset, this.bg.height - offset, cw, offset, 0, 0, cw, offset);
   } else {
-    this.context.drawImage(this.bg, xoffset, this.bg.height - offset, cw, ch, 0, 0, cw, ch);
+    this.context.drawImage(this.bg, x+xoffset, this.bg.height - offset, cw, ch, 0, 0, cw, ch);
   }
   
   this.offset -= this.speed * cam.vY;
@@ -74,10 +81,12 @@ function BGHandler() {
     this.backgrounds = [];
     this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.background, 1/10)); // 1/9
     this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.stars, 2/5)); // 1/6
+//    this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.marble, 1)); 
   };
   
   this.drawBackgrounds = function () {
-    //this.bgContext.clearRect(0, 0, this.bgWidth, this.bgHeight);
+//    this.bgContext.fillStyle = "black";
+//    this.bgContext.fillRect(0, 0, this.bgWidth, this.bgHeight);
     for (var bg = 0; bg < this.backgrounds.length; bg++) {
       this.backgrounds[bg].draw();
     }
