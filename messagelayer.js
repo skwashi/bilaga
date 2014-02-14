@@ -14,6 +14,7 @@ function MessageLayer() {
     this.showing = false;
     this.showingGO = false;
     this.showingNL = false;
+    this.showingRS = false;
     this.changed = false;
     this.message = null;
     this.timeRemaining = -1;
@@ -24,6 +25,7 @@ function MessageLayer() {
     this.showing = false;
     this.showingGO = false;
     this.showingNL = false;
+    this.showingRS = false;
     this.message = null;
     this.changed = false;
   };
@@ -66,6 +68,20 @@ function MessageLayer() {
       this.context.fillText("Press space to restart level!", this.width/2, this.height/2 + 80);
       this.showing = true;
       this.showingGO = true;
+      this.changed = false;
+    }
+  };
+
+  this.respawn = function () {
+    if (!this.showingRS) {
+      console.log("Drawing message!");
+      this.clear();
+      this.context.fillStyle="red";
+      this.context.textAlign="center";
+      this.context.fillText("You died!", this.width/2, this.height/2);
+      this.context.fillText("Press space to respawn!", this.width/2, this.height/2 + 80);
+      this.showing = true;
+      this.showingRS = true;
       this.changed = false;
     }
   };

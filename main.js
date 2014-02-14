@@ -17,12 +17,13 @@ function Hud(game, context, width, height) {
     this.clear();
     this.context.fillStyle = "white";
     this.context.textAlign = "start";
-    this.context.fillText("x: " + Math.round(player.x) + " vX: " + Math.round(player.vX*10)/10, 20, 2*this.height/5);
-    this.context.fillText("y: " + Math.round(player.y) + " vY: " + Math.round(player.vY*10)/10, 20, 3*this.height/5);
-    this.context.fillText("Level: " + game.levelNum, 20, 4*this.height/5);
+    this.context.fillText("Level: " + game.levelNum, 20, 2*this.height/5);
+    this.context.fillText("Enemies: " + this.game.enemies.length, 20, 3*this.height/5);
+    this.context.fillText("vX: " + Math.round(player.vX*10)/10, 20, 4*this.height/5);
+    this.context.fillText("vY: " + Math.round(player.vY*10)/10, 64, 4*this.height/5);
     this.context.textAlign = "end";
     this.context.fillText("Rockets: " + player.rockets, this.width - 20, 2*this.height/5);
-    this.context.fillText("Enemies: " + this.game.enemies.length, this.width - 20, 3*this.height/5);
+    this.context.fillText("Lives: " + player.lives, this.width - 20, 3*this.height/5);
     this.context.fillText("Score: " + game.score, this.width - 20, 4*this.height/5);
   };
 }
@@ -67,6 +68,8 @@ function Game() {
   this.startLevel = function (level) {
     this.player.reset(this.width/2, this.height-10, 50);
     this.playerAlive = true;
+    this.player.lives = 3;
+    this.grace = 120;
     this.enemies = [];
     this.projectiles = [];
     this.misc = [];
@@ -213,6 +216,9 @@ Game.prototype.handleInput = function () {
     cam.vY += (5*cam.levelSpeed - cam.vY)/30;
   else
     cam.vY -= (cam.vY - cam.levelSpeed)/15;
+
+  if (keys["f"])
+    player.hasShield = true;
   
   if (keys["q"]) {
     if (this.enemies.length > 0 && player.cooldowns.rocket == 0) {
@@ -236,6 +242,7 @@ Game.prototype.handleInput = function () {
 Game.prototype.frameReset = function () {
   cam.vX = 0;
   this.playerCollision = false;
+  this.player.hasShield = false;
   // clear canvas
   this.context.clearRect(0, 0, this.width, this.height);
 }
@@ -260,12 +267,26 @@ Game.prototype.updateWave = function () {
 }
 
 Game.prototype.updatePlayer = function () {
+  
+  if (this.player.time <= game.grace)
+    this.player.hasShield = true;
+  else
+    this.player.hasShield = false;
 
   if (!this.playerAlive) {
-    messageLayer.gameOver();
-    if (keys["space"]) {
-      this.loadLevel(this.levelNum);
-      this.score = this.scoreSaved;
+    if (this.player.lives <= 0) {
+      messageLayer.gameOver();
+      if (keys["space"]) {    
+	this.loadLevel(this.levelNum);
+	this.score = this.scoreSaved;
+      }
+    } else {
+      messageLayer.respawn();
+      if (keys["space"]) {    
+	this.playerAlive = true;
+	this.player.reset(this.width/2, this.height-10, 50);
+	messageLayer.clear();
+      }
     }
   } else if (this.levelCompleted) {
     //cam.vY = 5*cam.levelSpeed;
@@ -282,7 +303,6 @@ Game.prototype.updatePlayer = function () {
       }
     } else {
       this.player.moveOut();
-      this.player.draw();
     }   
   } else {
     // player keyboard interaction
@@ -294,8 +314,7 @@ Game.prototype.updatePlayer = function () {
 	this.player.cooldowns[key]--;
       }
     }
-    
-    this.player.draw();
+   
   }
 }
 
@@ -400,15 +419,25 @@ Game.prototype.update = function () {
   this.updateWave();
   this.updatePlayer();
   this.updateEnemies();
+  this.updateMisc();
+
+  // draw player after enemies and misc but before projecties
+  if (this.playerAlive && !this.player.isOutside()) {
+    this.player.time++;
+    this.player.draw();
+  }
+
   this.updateEnemyProjectiles();
   this.updateProjectiles();
-  this.updateMisc();
+
   this.updateHud();
 
-  if (this.playerCollision) {
+
+  if (this.playerCollision && !this.player.hasShield) {
     var playerExplosion = this.player.deathSpawn();
     this.misc = this.misc.concat(playerExplosion);
     this.playerAlive = false;
+    this.player.lives--;
   } 
 
 };
@@ -451,7 +480,7 @@ function render() {
 }
 
 function init() {
-  var player = new Player(this.context, this.width/2, this.height-10, 45, 52, 10, "grey", 50, 0, 0, accel, accel);//0.4, 0.4);
+  var player = new Player(this.context, this.width/2, this.height-10, 45, 52, 10, "grey", 50, 0, 0, accel, accel, 3);//0.4, 0.4);
   player.addSprite(images.ship1);
   grid.init(4/3);
   cam.init(1/4, 0, 0, 0, -5);

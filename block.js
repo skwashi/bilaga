@@ -11,6 +11,7 @@ function Block(context, x, y, w, h, solid, mass, color, health, vX, vY) {
   this.y = y;
   this.w = w;
   this.h = h;
+  this.col = {x: x, y: y, w: w, h: h};
   this.solid = solid;
   this.mass = mass;
   this.color = color;
@@ -19,6 +20,7 @@ function Block(context, x, y, w, h, solid, mass, color, health, vX, vY) {
   this.vX = vX;
   this.vY = vY;
   this.showHit = 0;
+  this.hasShield = false;
   this.alive = true;
   this.timeToDeath = 0;
   this.frame = 1;
@@ -52,11 +54,11 @@ function Block(context, x, y, w, h, solid, mass, color, health, vX, vY) {
   */
 
   this.center = function() {
-    return (this.x + Math.ceil(this.w/2));
+    return {x: (this.x + Math.ceil(this.w/2)), y: (this.y + Math.ceil(this.h/2))};
   }
 }
 
-
+/*
 Block.prototype = {
   x: 10,
   y: 10,
@@ -74,6 +76,7 @@ Block.prototype = {
   timeToDeath: 0,
   actions: {}
 };
+*/
 
 Block.prototype.isSolid = function () {
   return this.solid;
@@ -135,7 +138,21 @@ Block.prototype.draw = function() {
     this.context.drawImage(this.sprite, this.x - cam.x, this.y);
   else
     this.context.fillRect(this.x-cam.x, this.y, this.w, this.h);
+
+  if (this.hasShield) {
+    this.drawShield();
+  }
 };
+
+Block.prototype.drawShield = function() {
+  this.context.globalAlpha = 0.3;
+  this.context.fillStyle = "#FF55CC"//"rgba(255, 255, 255, 0.5)";
+  this.context.beginPath();
+  this.context.arc(this.center().x-cam.x, this.center().y, 40, 0, Math.PI*2, true); 
+  this.context.closePath();
+  this.context.fill();
+  this.context.globalAlpha = 1;
+}
 
 Block.prototype.move = function() {
 
@@ -224,7 +241,7 @@ Block.prototype.fireLaser = function(w, h, vX, vY) {
 }
 
 // Player class
-function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY) {
+function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY, lives) {
   Block.call(this, context, x, y, w, h, true, mass, color, 0, vX, vY);
   this.aX = aX;
   this.aY = aY;
@@ -232,12 +249,16 @@ function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY) {
   this.cd = 10;
   this.cooldowns = {laser: 0, rocket: 0};
   this.hasSprite = false;
+  this.lives = lives;
+  this.time = 0;
 
   this.reset = function (x, y, rockets) {
     this.x = x;
     this.y = y;
     this.vX = 0;
     this.vY = 0;
+    this.time = 0;
+    this.hasShield = false;
     this.rockets = rockets;
     this.cooldowns = {laser: 0, rocket: 0}
   };
@@ -245,6 +266,10 @@ function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY) {
   this.addSprite = function (sprite) {
     this.hasSprite = true;
     this.sprite = sprite;
+    this.x += (sprite.width - this.width)/2;
+    this.y += (sprite.width - this.width)/2;
+    this.w = sprite.width;
+    this.h = sprite.height;
   }
 }
 
@@ -313,7 +338,7 @@ Player.prototype.move = function(xMove, yMove) {
 
 Player.prototype.fire = function(type, xDir) {
   var projectile = null;
-  var center = this.center();
+  var center = this.center().x;
   if (type == "rocket") {
     proj = [new Rocket(this.context, center, this.y, this.vX, this.vY + cam.vY, 0, -0.3)];//-0.075)];
   } else if (type == "dualLaser") {
