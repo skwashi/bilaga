@@ -140,10 +140,7 @@ Block.prototype.move = function() {
 
   this.x += this.vX;
   this.y += this.vY;
-  
-  var leftlim = -cam.len+game.player.w/2;
-  var rightlim = cwidth + cam.len - game.player.w;
-  
+    
   if (this.solid) {
     if (this.y <= 0) {
       this.y = 0;
@@ -153,11 +150,11 @@ Block.prototype.move = function() {
       this.vY = -this.vY;
     }
   
-    if (this.x <= leftlim) {
-      this.x = leftlim;
+    if (this.x <= 0) {
+      this.x = 0;
       this.vX = -this.vX;
-    } else if (this.x + this.w >= rightlim) {
-      this.x = rightlim - this.w;
+    } else if (this.x + this.w >= cwidth) {
+      this.x = cwidth - this.w;
       this.vX = -this.vX;
     }  
   }
@@ -270,10 +267,6 @@ Player.prototype.move = function(xMove, yMove) {
   this.y += this.vY;
     
   cam.vX = cam.pan*this.vX;
-  cam.x += cam.vX;
-
-  var leftlim = -cam.len + this.w/2;
-  var rightlim = cwidth + cam.len-this.w;
 
   if (this.solid) {
     if (this.y <= 0) {
@@ -284,20 +277,18 @@ Player.prototype.move = function(xMove, yMove) {
       this.vY = -this.vY;
     }
   
-    if (this.x <= leftlim) {
-      this.x = leftlim;
+    if (this.x <= 0) {
+      this.x = 0;
       this.vX = -this.vX;
-      cam.x = leftlim;
       cam.vX = 0;
-    } else if (this.x + this.w >= rightlim) {
-      this.x = rightlim - this.w;
+    } else if (this.x + this.w >= cwidth) {
+      this.x = cwidth - this.w;
       this.vX = -this.vX;
-      cam.x = rightlim - cwidth;
       cam.vX = 0;
     }  
   }
 
-
+  cam.x += cam.vX;
   
 };
 
