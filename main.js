@@ -43,7 +43,7 @@ function Game() {
     var hudHeight = hudCanvas.height;
 
     this.hud = new Hud(this, hudContext, hudWidth, hudHeight);
-    this.player = new Player(this.context, this.width/2, this.height-10, 10, 20, 10, colors.gradient, 50, 0, 0, 1.2, 1.2);//0.4, 0.4);
+    this.player = new Player(this.context, this.width/2, this.height-10, 10, 20, 10, colors.gradient, 50, 0, 0, accel, accel);//0.4, 0.4);
     this.playerAlive = true;
     this.enemies = [];
     this.projectiles = [];
@@ -74,6 +74,10 @@ function Game() {
     this.timeToWave = level.delay[this.wave];
     this.waveFrame = 0;
     this.waveCleared = true;
+    cam.x = 0;
+    cam.y = 0;
+    cam.vX = 0;
+    cam.vY = -5;
   };
 
   this.loadLevel = function (num) {
@@ -176,15 +180,15 @@ Game.prototype.interact = function () {
       player.cooldowns.laser = player.cd;
     }
   }
-  if (keys["s"]) {
-    if (player.cooldowns.laser == 0) {
-      this.projectiles = this.projectiles.concat(player.fire("dualLaser", 0));
-      player.cooldowns.laser = player.cd;
-    }
-  }
   if (keys["d"]) {
     if (player.cooldowns.laser == 0) {
       this.projectiles = this.projectiles.concat(player.fire("dualLaser", 1));
+      player.cooldowns.laser = player.cd;
+    }
+  }
+  if (keys["s"]) {
+    if (player.cooldowns.laser == 0) {
+      this.projectiles = this.projectiles.concat(player.fire("dualLaser", 0));
       player.cooldowns.laser = player.cd;
     }
   }
@@ -217,6 +221,9 @@ Game.prototype.interact = function () {
 }
 
 Game.prototype.update = function () {
+
+  // reset camera speed
+  cam.vX = 0;
   
   if (this.playerAlive) {
     // Wait for next wave if their are no remaining enemies.
@@ -433,7 +440,7 @@ function MessageLayer() {
     this.clear();
     this.context.textAlign="center";
     this.context.fillStyle="blue";
-    this.context.fillText(message, this.width/2, height/3);
+    this.context.fillText(message, this.width/2, this.height/3);
     this.showing = true;
     this.changed = false;
   };
@@ -444,7 +451,7 @@ function MessageLayer() {
       this.clear();
       this.context.fillStyle="red";
       this.context.textAlign="center";
-      this.context.fillText("Game Over!", this.width/2, height/2);
+      this.context.fillText("Game Over!", this.width/2, this.height/2);
       this.context.fillText("Press space to restart level!", this.width/2, this.height/2 + 80);
       this.showing = true;
       this.showingGO = true;
@@ -473,10 +480,21 @@ function MessageLayer() {
   };
 }
 
+function Camera() {
+  this.init = function (pan, x, y, vX, vY) {
+    this.pan = pan;
+    this.len = (1-pan/2)/(1-pan);
+    this.x = x;
+    this.y = y;
+    this.vX = vX;
+    this.vY = vY;
+  }
+}
 
 var bgHandler = new BGHandler();
 var game = new Game();
 var messageLayer = new MessageLayer();
+var cam = new Camera();
 
 function render() {
   requestAnimationFrame(render);
@@ -487,6 +505,7 @@ function render() {
 }
 
 function init() {
+  cam.init(1/4, 0, 0, 0, -5);
   bgHandler.init();
   game.init(3);
   messageLayer.init();

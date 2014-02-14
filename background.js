@@ -36,7 +36,6 @@ function Background(context, canvasWidth, canvasHeight, image, speed) {
   this.speed = speed;
   this.bg = image;
   this.offset = 0;
-
   this.reset = function () {
     this.offset = 0;
   };
@@ -50,18 +49,19 @@ Background.prototype.draw = function () {
     this.offset = 0;
   }
 
+  var xoffset = this.speed*cam.x;
   var offset = Math.floor(this.offset);
 
   if (offset == 0) {
-    this.context.drawImage(this.bg, 0, 0, cw, ch, 0, 0, cw, ch);
+    this.context.drawImage(this.bg, xoffset, 0, cw, ch, 0, 0, cw, ch);
   } else if (offset < ch) {
-    this.context.drawImage(this.bg, 0, 0, cw, ch-offset, 0, offset, cw, ch-offset);
-    this.context.drawImage(this.bg, 0, this.bg.height - offset, cw, offset, 0, 0, cw, offset);
+    this.context.drawImage(this.bg, xoffset, 0, cw, ch-offset, 0, offset, cw, ch-offset);
+    this.context.drawImage(this.bg, xoffset, this.bg.height - offset, cw, offset, 0, 0, cw, offset);
   } else {
-    this.context.drawImage(this.bg, 0, this.bg.height - offset, cw, ch, 0, 0, cw, ch);
+    this.context.drawImage(this.bg, xoffset, this.bg.height - offset, cw, ch, 0, 0, cw, ch);
   }
   
-  this.offset = this.offset + this.speed;
+  this.offset -= this.speed * cam.vY;
 }
 
 
@@ -72,8 +72,8 @@ function BGHandler() {
     this.bgWidth = this.bgCanvas.width;
     this.bgHeight = this.bgCanvas.height;
     this.backgrounds = [];
-    this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.background, 0.5));
-    this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.stars, 2));
+    this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.background, 1/10));
+    this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.stars, 2/5));
   };
   
   this.drawBackgrounds = function () {

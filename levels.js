@@ -49,7 +49,7 @@ function downers(xmod) {
 function downers(xmod, health) {
   var num = 10;
   var down = [];
-  var space = width/(2*num+1);
+  var space = cwidth/(2*num+1);
   var w = space;
   var h = 1.5*space;
   var x = space;
@@ -64,14 +64,14 @@ function downers(xmod, health) {
 }
 
 function xMod(num) {
-  return width/(2*num + 1);
+  return cwidth/(2*num + 1);
 }
 
 function field(w, h, vY, space, health) {
   var down = [];
   var rand = 0;
-  for (var y = 0; y <= height; y = y + h + space) {
-    for (var x = 0; x <= width; x = x + w + space) {
+  for (var y = 0; y <= cheight; y = y + h + space) {
+    for (var x = 0; x <= cwidth; x = x + w + space) {
       rand = Math.floor(Math.random()*8);
       if (rand == 0) {
 	down.push(new Straight(context, x, -y, w, h, 100, "red", 100, 0, vY));
@@ -85,7 +85,7 @@ function field(w, h, vY, space, health) {
 
 function timeField(num, w, h, vY, space, health) {
   var tField = {};
-  var delay = 2*height/vY;
+  var delay = 2*cheight/vY;
   var t = 60;
   for (var i = 0; i < num; i++) {
     tField[t] = new EWave(field(w, h, vY, space, health));
@@ -124,19 +124,19 @@ function levelMessage(level) {
 function loadLevel(number) {
   if (number == 1) {
     var enemy1 = new Enemy(context, 10, 20, 10, 10, 100, "purple", 1, 2, 2);
-    var enemy2 = new Enemy(context, width-10, 20, 10, 10, 100, "purple", 1, -2, 2);
+    var enemy2 = new Enemy(context, cwidth-10, 20, 10, 10, 100, "purple", 1, -2, 2);
     var enemy3 = new Enemy(context, 30, 20, 20, 20, 100, "blue", 1, 2, 0);
-    var enemy4 = new Enemy(context, width-30, 20, 20, 20, 100, "blue", 1, -2, 0);
+    var enemy4 = new Enemy(context, cwidth-30, 20, 20, 20, 100, "blue", 1, -2, 0);
     
     var eRand1 = new Random(context, 20, 40, 20, 20, 100, "red", 3, 5, 5, 0.4, 0.4);
-    var eRand2 = new Random(context, width-20, 40, 20, 20, 100, "red", 3, -5, 5, 0.4, 0.4);
-    var eRand3 = new Random(context, width/2, 50, 50, 50, 100, "red", 30, -5, 5, 0.4, 0.4);
-    var eRand4 = new Random(context, width/2, 50, 50, 50, 100, "red", 30, 5, 5, 0.4, 0.4);
-    var eRandS = new Random(context, width-20, 40, 20, 20, 20, "white", 3, -5, 5, 1, 1);
+    var eRand2 = new Random(context, cwidth-20, 40, 20, 20, 100, "red", 3, -5, 5, 0.4, 0.4);
+    var eRand3 = new Random(context, cwidth/2, 50, 50, 50, 100, "red", 30, -5, 5, 0.4, 0.4);
+    var eRand4 = new Random(context, cwidth/2, 50, 50, 50, 100, "red", 30, 5, 5, 0.4, 0.4);
+    var eRandS = new Random(context, cwidth-20, 40, 20, 20, 20, "white", 3, -5, 5, 1, 1);
     
     var movers = [];
     var mover = null;
-    for (var x = 10; x <= width-40; x += (width-50)/10) {
+    for (var x = 10; x <= cwidth-40; x += (cwidth-50)/10) {
       mover = new Mover(context, x, 5, 30, 30, 100, colors.gradient, 5, 3, 1.5);
       mover.cycleLength = 60;
       mover.addAction(60, ["fireLaser", 5, 15, 0, 3]);
@@ -145,11 +145,11 @@ function loadLevel(number) {
    
     var waves = [];
     waves.push({1:(new MWave("Level 1", 120)), 2:(new DWave())});
-    waves.push({1:(new EWave(movers)), 2:(new DWave())});//.push(new Hydra(context, width/2, 50, 100, 100, 100, "red", 5, 0,5, 0.4, 0.4))));
+    waves.push({1:(new EWave(movers)), 2:(new DWave())});//.push(new Hydra(context, cwidth/2, 50, 100, 100, 100, "red", 5, 0,5, 0.4, 0.4))));
     waves.push({1:new EWave([enemy1, enemy2, enemy3, enemy4, eRand1, eRand2, eRand3, eRand4, eRandS]), 2:new DWave()});
     waves.push(timedWave());
     waves.push({1:new MWave("Warning: Large enemy approaching!", 240), 2:new DWave()});
-    waves.push({1:new EWave([new Random(context, width/2-110, 5, 50, 75, 100, "purple", 30, 0,5, 0.4, 0.4), new Random(context, width/2+60, 5, 50, 75, 100, "purple", 30, 0, 5, 0.4, 0.4), new Hydra(context, width/2-50, 20, 100, 100, 100, colors.gradient, 50, 0,5, 0.4, 0.4, 1)]), 2:new DWave()});
+    waves.push({1:new EWave([new Random(context, cwidth/2-110, 5, 50, 75, 100, "purple", 30, 0,5, 0.4, 0.4), new Random(context, cwidth/2+60, 5, 50, 75, 100, "purple", 30, 0, 5, 0.4, 0.4), new Hydra(context, cwidth/2-50, 20, 100, 100, 100, colors.gradient, 50, 0,5, 0.4, 0.4, 1)]), 2:new DWave()});
       
     return new Level(waves, [0, 120, 240, 240, 60, 240], 0.5);
   } 

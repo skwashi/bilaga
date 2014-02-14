@@ -22,8 +22,8 @@ window.requestAnimationFrame = (function() {
  */
 var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
-var width = canvas.width;
-var height = canvas.height;
+var cwidth = canvas.width;
+var cheight = canvas.height;
 
 /**
  * Keyboard handling
@@ -67,7 +67,7 @@ document.onkeyup = function(e) {
  * Color definitions
  */
 colors = new function () {
-  this.gradient = context.createLinearGradient(width/2, height, width/2, 0);
+  this.gradient = context.createLinearGradient(cwidth/2, cheight, cwidth/2, 0);
   this.gradient.addColorStop(0, "green");
   this.gradient.addColorStop(0.5, 'rgb(0, 0, 255)');
   this.gradient.addColorStop(1, 'rgb(255, 0, 0)');
@@ -95,3 +95,9 @@ function scalarMult(scalar, a) {
 function unitVector(a) {
   return scalarMult(1/(dotProduct(a,a), a));
 }
+
+
+/**
+ * camera speed
+ */
+

@@ -4,8 +4,8 @@
  **
  **/
 
-var drag = 1.5; //0.5;
-
+var drag = 1; //0.5;
+var accel = 1;
 
 // Block class
 function Block(context, x, y, w, h, solid, mass, color, health, vX, vY) {
@@ -114,8 +114,8 @@ Block.prototype.clear = function () {
 };
 
 Block.prototype.isOutside = function () {
-  return (this.x > 1.5*width || this.x + this.w < -width ||
-	  this.y > 1.5*height || this.y + this.h < -height);
+  return (this.x > 1.5*cwidth || this.x + this.w < -cwidth ||
+	  this.y > 1.5*cheight || this.y + this.h < -cheight);
 };
 
 Block.prototype.isGone = function () {
@@ -129,7 +129,7 @@ Block.prototype.draw = function() {
   } else {
     this.context.fillStyle = this.color;
   }
-  this.context.fillRect(this.x, this.y, this.w, this.h);
+  this.context.fillRect(this.x-cam.x, this.y, this.w, this.h);
 };
 
 Block.prototype.move = function() {
@@ -139,22 +139,22 @@ Block.prototype.move = function() {
   }
 
   this.x += this.vX;
-  this.y += this.vY;  
+  this.y += this.vY;
     
   if (this.solid) {
     if (this.y <= 0) {
       this.y = 0;
       this.vY = -this.vY;
-    } else if (this.y + this.h >= height) {
-      this.y = height - this.h;
+    } else if (this.y + this.h >= cheight) {
+      this.y = cheight - this.h;
       this.vY = -this.vY;
     }
   
     if (this.x <= 0) {
       this.x = 0;
       this.vX = -this.vX;
-    } else if (this.x + this.w >= width) {
-      this.x = width - this.w;
+    } else if (this.x + this.w >= cwidth) {
+      this.x = cwidth - this.w;
       this.vX = -this.vX;
     }  
   }
@@ -254,10 +254,42 @@ Player.prototype.move = function(xMove, yMove) {
   var xM = xMove / len;
   var yM = yMove / len;
 
+  /*
+  this.vX = Math.min(15, this.vX + this.aX*xM);// - drag*this.vX / this.mass;
+  this.vY = Math.min(15, this.vY + this.aY*yM);// - drag*this.vY / this.mass;
+  this.vX *= 0.9;
+  this.vY *= 0.9;
+  */
   this.vX += this.aX*xM - drag*this.vX / this.mass;
   this.vY += this.aY*yM - drag*this.vY / this.mass;
 
-  Block.prototype.move.call(this);
+  this.x += this.vX;
+  this.y += this.vY;
+    
+  cam.vX = cam.pan*this.vX;
+
+  if (this.solid) {
+    if (this.y <= 0) {
+      this.y = 0;
+      this.vY = -this.vY;
+    } else if (this.y + this.h >= cheight) {
+      this.y = cheight - this.h;
+      this.vY = -this.vY;
+    }
+  
+    if (this.x <= 0) {
+      this.x = 0;
+      this.vX = -this.vX;
+      cam.vX = 0;
+    } else if (this.x + this.w >= cwidth) {
+      this.x = cwidth - this.w;
+      this.vX = -this.vX;
+      cam.vX = 0;
+    }  
+  }
+
+  cam.x += cam.vX;
+  
 };
 
 Player.prototype.fire = function(type, xDir) {
@@ -341,8 +373,8 @@ Mover.prototype.move = function() {
   if (this.y <= 0) {
     this.y = 0;
     this.vY = -this.vY;
-  } else if (this.y + this.h >= height) {
-    this.y = height - this.h;
+  } else if (this.y + this.h >= cheight) {
+    this.y = cheight - this.h;
     this.vY = -this.vY;
   }
   
@@ -350,8 +382,8 @@ Mover.prototype.move = function() {
     this.x = 0;
     this.vX = -this.vX;
     this.y += (this.h+1)*this.vY;
-  } else if (this.x + this.w >= width) {
-    this.x = width - this.w;
+  } else if (this.x + this.w >= cwidth) {
+    this.x = cwidth - this.w;
     this.vX = -this.vX;
     this.y += (this.h+1)*this.vY;
   }
