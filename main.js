@@ -192,7 +192,7 @@ Game.prototype.interact = function () {
       player.cooldowns.laser = player.cd;
     }
   }
-  if (keys["z"] && player.rockets > 0) {
+  if (keys["w"] && player.rockets > 0) {
     if (player.cooldowns.rocket == 0) {
       this.projectiles = this.projectiles.concat(player.fire("rocket", 0));
       player.cooldowns.rocket = player.cd;
@@ -210,7 +210,7 @@ Game.prototype.interact = function () {
     }
   }
   
-  if (keys["w"]) {
+  if (keys["z"]) {
     if (player.cooldowns.rocket == 0) {
       this.loadLevel(this.levelNum+1);
       player.cooldowns.rocket = 5*player.cd;
