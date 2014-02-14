@@ -3,7 +3,7 @@ Controls:
 
 arrow keys: movement
 
-a, s, d: dual laser
+a, s, d: dual laser; x: quad laser
 
 z: rockets
 

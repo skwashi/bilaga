@@ -118,8 +118,8 @@ Block.prototype.clear = function () {
 };
 
 Block.prototype.isOutside = function () {
-  return (this.x > 1.5*cwidth || this.x + this.w < -cwidth ||
-	  this.y > 1.5*cheight || this.y + this.h < -cheight);
+  return (this.x > 1.5*(cwidth+cam.len) || this.x + this.w < -(cwidth+cam.len) ||
+	  this.y > 2*cheight || this.y + this.h < -cheight);
 };
 
 Block.prototype.isGone = function () {
@@ -310,8 +310,8 @@ Player.prototype.move = function(xMove, yMove) {
   cam.vX = cam.pan*this.vX;
   cam.x += cam.vX;
 
-  var leftlim = -cam.len + this.w/2;
-  var rightlim = cwidth + cam.len-this.w;
+  var leftlim = -cam.len;
+  var rightlim = cwidth + cam.len;
 
   if (this.solid) {
     if (this.y <= 0) {
@@ -325,16 +325,20 @@ Player.prototype.move = function(xMove, yMove) {
     if (this.x <= leftlim) {
       this.x = leftlim;
       this.vX = -this.vX;
-      cam.x = leftlim;
+      cam.x = -cam.len;
       cam.vX = 0;
     } else if (this.x + this.w >= rightlim) {
       this.x = rightlim - this.w;
       this.vX = -this.vX;
-      cam.x = rightlim - cwidth;
+      cam.x = cam.len;
       cam.vX = 0;
     }  
   }
 
+  if (cam.x < -cam.len || cam.x > cam.len) {
+    console.log("Shouldn't happen! -- " + (cam.x - cam.len));
+    cam.x = -cam.len;
+  }
   
 };
 
@@ -344,7 +348,10 @@ Player.prototype.fire = function(type, xDir) {
   if (type == "rocket") {
     proj = [new Rocket(this.context, center, this.y, this.vX, this.vY + cam.vY, 0, -0.3)];//-0.075)];
   } else if (type == "dualLaser") {
-    proj = [new Laser(this.context, center-11, this.y - 1, 5*xDir, -10), new Laser(this.context, center+11, this.y - 1, 5*xDir, -10)];
+    proj = [new Laser(this.context, center-5, this.y - 1, 5*xDir, -10), new Laser(this.context, center+5, this.y - 1, 5*xDir, -10)];
+  } else if (type == "quadLaser") {
+    proj = [new Laser(this.context, center-5, this.y - 1, 5*xDir, -10), new Laser(this.context, center+5, this.y - 1, 5*xDir, -10),
+	    new Laser(this.context, center-21, this.y + 20, 0, -10), new Laser(this.context, center+21, this.y + 20, 0, -10)];
   } else {
     proj = [new Laser(this.context, center, this.y - 1, 0, -10)];
   }

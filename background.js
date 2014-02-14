@@ -82,7 +82,7 @@ function BGHandler() {
     this.backgrounds = [];
     this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.background, 1/10)); // 1/9
     this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.stars, 2/5)); // 1/6
-//    this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.marble, 1)); 
+//    this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.grass, 1)); 
   };
   
   this.drawBackgrounds = function () {

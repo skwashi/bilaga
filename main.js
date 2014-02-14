@@ -200,6 +200,12 @@ Game.prototype.handleInput = function () {
       player.cooldowns.laser = player.cd;
     }
   }
+  if (keys["x"]) {
+    if (player.cooldowns.laser == 0) {
+      this.projectiles = this.projectiles.concat(player.fire("quadLaser", 0));
+      player.cooldowns.laser = player.cd;
+    }
+  }
   if (keys["z"] && player.rockets > 0) {
     if (player.cooldowns.rocket == 0) {
       this.projectiles = this.projectiles.concat(player.fire("rocket", 0));
@@ -488,7 +494,6 @@ function init() {
   var ph = 52;
   var px = cwidth/2 - pw/2;
   var py = cheight-10;
-  console.log(px);
   var player = new Player(context, px, py, pw, ph, 10, "grey", 50, 0, 0, accel, accel, 3);//0.4, 0.4);
   player.addSprite(images.ship1);
   grid.init(4/3);
