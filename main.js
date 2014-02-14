@@ -81,11 +81,7 @@ function Game() {
     this.timeToWave = level.delay[this.wave];
     this.waveFrame = 0;
     this.waveCleared = true;
-    cam.x = 0;
-    cam.y = 0;
-    cam.vX = 0;
-    cam.vY = -5;
-    cam.levelSpeed = cam.defSpeed;
+    cam.reset();
   };
 
   this.loadLevel = function (num) {
@@ -242,7 +238,7 @@ Game.prototype.handleInput = function () {
 Game.prototype.frameReset = function () {
   cam.vX = 0;
   this.playerCollision = false;
-  this.player.hasShield = false;
+  this.player.hasShield = true;
   // clear canvas
   this.context.clearRect(0, 0, this.width, this.height);
 }
@@ -284,7 +280,8 @@ Game.prototype.updatePlayer = function () {
       messageLayer.respawn();
       if (keys["space"]) {    
 	this.playerAlive = true;
-	this.player.reset(this.width/2, this.height-10, 50);
+	this.player.reset(50);
+	cam.reset();
 	messageLayer.clear();
       }
     }
@@ -453,6 +450,13 @@ function Camera() {
     this.defSpeed = vY;
     this.levelSpeed = this.defSpeed;
   }
+  
+  this.reset = function() {
+    this.x = 0;
+    this.y = 0;
+    this.vX = 0;
+    this.vY = this.levelSpeed;
+  }
 }
 
 // coordinate system in which objects move
@@ -480,7 +484,12 @@ function render() {
 }
 
 function init() {
-  var player = new Player(this.context, this.width/2, this.height-10, 45, 52, 10, "grey", 50, 0, 0, accel, accel, 3);//0.4, 0.4);
+  var pw = 45;
+  var ph = 52;
+  var px = cwidth/2 - pw/2;
+  var py = cheight-10;
+  console.log(px);
+  var player = new Player(context, px, py, pw, ph, 10, "grey", 50, 0, 0, accel, accel, 3);//0.4, 0.4);
   player.addSprite(images.ship1);
   grid.init(4/3);
   cam.init(1/4, 0, 0, 0, -5);

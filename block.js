@@ -243,24 +243,26 @@ Block.prototype.fireLaser = function(w, h, vX, vY) {
 // Player class
 function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY, lives) {
   Block.call(this, context, x, y, w, h, true, mass, color, 0, vX, vY);
+  this.initial = {x: x, y: y};
   this.aX = aX;
   this.aY = aY;
   this.rockets = rockets;
   this.cd = 10;
   this.cooldowns = {laser: 0, rocket: 0};
   this.hasSprite = false;
+  this.hasShield = true;
   this.lives = lives;
   this.time = 0;
 
-  this.reset = function (x, y, rockets) {
-    this.x = x;
-    this.y = y;
+  this.reset = function (rockets) {
+    this.x = this.initial.x;
+    this.y = this.initial.y;
     this.vX = 0;
     this.vY = 0;
     this.time = 0;
-    this.hasShield = false;
     this.rockets = rockets;
     this.cooldowns = {laser: 0, rocket: 0}
+    this.hasShield = true;
   };
 
   this.addSprite = function (sprite) {
