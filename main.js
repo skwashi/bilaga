@@ -1,5 +1,4 @@
 
-
 /**
  * Hud
  */
@@ -47,6 +46,7 @@ function Game() {
     this.hud = new Hud(this, hudContext, hudWidth, hudHeight);
     this.player = player;
     this.playerAlive = true;
+    this.playerCollision = false;
     this.enemies = [];
     this.projectiles = [];
     this.misc = [];
@@ -82,6 +82,7 @@ function Game() {
     cam.y = 0;
     cam.vX = 0;
     cam.vY = -5;
+    cam.levelSpeed = cam.defSpeed;
   };
 
   this.loadLevel = function (num) {
@@ -131,7 +132,7 @@ Game.prototype.traverseWave = function () {
     } else if (wave.type == "message") {
       messageLayer.setMessage(wave.content.message, wave.content.time);
     } else if (wave.type == "speed") {
-      cam.vY = wave.content;
+      cam.levelSpeed = wave.content;
     } else if (wave.type == "done") {
       this.waveCleared = true;
     }
@@ -150,7 +151,7 @@ Game.prototype.killEnemy = function (enemy) {
 }
 
 
-Game.prototype.interact = function () {
+Game.prototype.handleInput = function () {
   var player = this.player;
   
   // player movement
@@ -209,9 +210,9 @@ Game.prototype.interact = function () {
   }
   
   if (keys["e"])
-    cam.vY += (5*cam.defSpeed - cam.vY)/30;
+    cam.vY += (5*cam.levelSpeed - cam.vY)/30;
   else
-    cam.vY -= (cam.vY - cam.defSpeed)/15;
+    cam.vY -= (cam.vY - cam.levelSpeed)/15;
   
   if (keys["q"]) {
     if (this.enemies.length > 0 && player.cooldowns.rocket == 0) {
@@ -230,15 +231,17 @@ Game.prototype.interact = function () {
     }
   }
 
- 
 }
 
-Game.prototype.update = function () {
-
-  // reset camera speed
+Game.prototype.frameReset = function () {
   cam.vX = 0;
-      
-  
+  this.playerCollision = false;
+  // clear canvas
+  this.context.clearRect(0, 0, this.width, this.height);
+}
+
+Game.prototype.updateWave = function () {
+   
   if (this.playerAlive) {
     // Wait for next wave if their are no remaining enemies.
     if (this.enemies.length == 0 && this.waveCleared == true) {
@@ -254,9 +257,10 @@ Game.prototype.update = function () {
     }
   }
 
-  // clear canvas
-  this.context.clearRect(0, 0, this.width, this.height);
-  
+}
+
+Game.prototype.updatePlayer = function () {
+
   if (!this.playerAlive) {
     messageLayer.gameOver();
     if (keys["space"]) {
@@ -264,7 +268,8 @@ Game.prototype.update = function () {
       this.score = this.scoreSaved;
     }
   } else if (this.levelCompleted) {
-    cam.vY = 5*cam.defSpeed;
+    //cam.vY = 5*cam.levelSpeed;
+    cam.vY += (5*cam.levelSpeed - cam.vY)/15;
     if (this.player.isOutside()) {
       messageLayer.nextLevel();
       if (keys["space"]) {
@@ -281,7 +286,7 @@ Game.prototype.update = function () {
     }   
   } else {
     // player keyboard interaction
-    this.interact();
+    this.handleInput();
     
     // decrease player cooldowns
     for (var key in this.player.cooldowns) {
@@ -289,12 +294,12 @@ Game.prototype.update = function () {
 	this.player.cooldowns[key]--;
       }
     }
+    
     this.player.draw();
   }
+}
 
-  
-  // move and draw enemies and check for collision
-  var playerCollision = false;
+Game.prototype.updateEnemies = function () {
   var enemy = null;
 
   for (var i = this.enemies.length - 1; i >= 0; i--) {
@@ -307,11 +312,13 @@ Game.prototype.update = function () {
     } else {
       enemy.draw();
       if (this.playerAlive && enemy.collide(this.player)) {
-	playerCollision = true;
+	this.playerCollision = true;
       }
     }
   }
+}
 
+Game.prototype.updateEnemyProjectiles = function () {
   var eproj = null;
   // move and check for enemy projectiles;
   for (var i = this.enemyProjectiles.length - 1; i >= 0; i--) {
@@ -323,30 +330,18 @@ Game.prototype.update = function () {
     } else {
       eproj.draw();
       if (this.playerAlive && eproj.collide(this.player)) {
-	playerCollision = true;
+	this.playerCollision = true;
       }
     }
   }
+}
 
-  var miscBlock = null;
-  // move and draw misc
-  for (var i = this.misc.length - 1; i >= 0; i--) {
-    miscBlock = this.misc[i];
-    miscBlock.move();
-    if (miscBlock.isGone()) {
-      this.misc.splice(i,1);
-      delete miscBlock;
-    } else {
-      miscBlock.draw();
-    }
-  }
 
-  // move and draw projectiles
+Game.prototype.updateProjectiles = function () {
+
   var projectile = null;
-  var i = 0;
   var hit = false;
-
-  enemy = null;
+  var enemy = null;
 
   for (var i = this.projectiles.length - 1; i >= 0; i--) {
     hit = false;
@@ -379,125 +374,44 @@ Game.prototype.update = function () {
       projectile.draw();
     }
   }
+}
 
-  if (playerCollision) {
-    var playerExplosion = this.player.deathSpawn();
-    this.misc = this.misc.concat(playerExplosion);
-    this.playerAlive = false;
-  } 
-  
-};
-
+Game.prototype.updateMisc = function () {
+  var miscBlock = null;
+  for (var i = this.misc.length - 1; i >= 0; i--) {
+    miscBlock = this.misc[i];
+    miscBlock.move();
+    if (miscBlock.isGone()) {
+      this.misc.splice(i,1);
+      delete miscBlock;
+    } else {
+      miscBlock.draw();
+    }
+  }
+}
 
 Game.prototype.updateHud = function () {
   this.hud.update();
 };
 
-Game.prototype.moveOut = function () {
-  this.player.clear();
-  this.player.moveOut();
-  this.player.draw();
-  
-  if (this.player.outside()) {
-    return true;
-  } else {
-    return false;
-  }
-}
+Game.prototype.update = function () {
 
+  this.frameReset();
+  this.updateWave();
+  this.updatePlayer();
+  this.updateEnemies();
+  this.updateEnemyProjectiles();
+  this.updateProjectiles();
+  this.updateMisc();
+  this.updateHud();
 
-/**
- * Layer for messages
- */
+  if (this.playerCollision) {
+    var playerExplosion = this.player.deathSpawn();
+    this.misc = this.misc.concat(playerExplosion);
+    this.playerAlive = false;
+  } 
 
-function MessageLayer() {
-  this.init = function () {
-    this.canvas = document.getElementById("messages");
-    this.context = this.canvas.getContext("2d");
-    this.width = this.canvas.width;
-    this.height = this.canvas.height;
-
-    this.context.font="30px Verdana";
-
-    this.showing = false;
-    this.showingGO = false;
-    this.showingNL = false;
-    this.changed = false;
-    this.message = null;
-    this.timeRemaining = -1;
-  };
-
-  this.clear = function () {
-    this.context.clearRect(0, 0, this.width, this.height);
-    this.showing = false;
-    this.showingGO = false;
-    this.showingNL = false;
-    this.message = null;
-    this.changed = false;
-  };
-
-  this.setMessage = function (message, time) {
-    this.message = message;
-    this.timeRemaining = time;
-    this.changed = true;    
-  }
-
-  this.render = function () {
-    if (this.changed && this.message != null) {
-      this.showMessage(this.message);
-    }
-    if (this.timeRemaining == 0) {
-      this.clear();
-      this.timeRemaining = -1;
-    } else if (this.timeRemaining > 0) {
-      this.timeRemaining -= 1;
-    }     
-  };
-
-  this.showMessage = function (message) {
-    console.log("Drawing Message!");
-    this.clear();
-    this.context.textAlign="center";
-    this.context.fillStyle="blue";
-    this.context.fillText(message, this.width/2, this.height/3);
-    this.showing = true;
-    this.changed = false;
-  };
-
-  this.gameOver = function () {
-    if (!this.showingGO) {
-      console.log("Drawing message!");
-      this.clear();
-      this.context.fillStyle="red";
-      this.context.textAlign="center";
-      this.context.fillText("Game Over!", this.width/2, this.height/2);
-      this.context.fillText("Press space to restart level!", this.width/2, this.height/2 + 80);
-      this.showing = true;
-      this.showingGO = true;
-      this.changed = false;
-    }
-  };
-  
-  this.nextLevel = function () {
-    if (!this.showingNL) {
-      this.clear();
-      // Create gradient
-      //var gradient=this.context.createLinearGradient(0, 0, this.width, 0);
-      //gradient.addColorStop("0","magenta");
-      //gradient.addColorStop("0.5","blue");
-      //gradient.addColorStop("1.0","red");
-      // Fill with gradient
-      //this.context.fillStyle=gradient;
-      this.context.fillStyle="blue";
-      this.context.textAlign="center";
-      this.context.fillText("Level completed.", this.width/2, this.height/2);  
-      this.context.fillText("Press space to continue!", this.width/2, this.height/2 + 80);
-      this.showingNL = true;
-      this.showing = true;
-      this.changed = false;
-    }
-  };
-}
+};
 
 function Camera() {
   this.init = function (pan, x, y, vX, vY) {
@@ -508,6 +422,7 @@ function Camera() {
     this.vX = vX;
     this.vY = vY;
     this.defSpeed = vY;
+    this.levelSpeed = this.defSpeed;
   }
 }
 
@@ -518,26 +433,26 @@ function Grid() {
   }
 }
 
-var bgHandler = new BGHandler();
+// setting up the game environment
+
+var bgHandler = new BGHandler(); // background.js
 var game = new Game();
-var messageLayer = new MessageLayer();
+var messageLayer = new MessageLayer(); // messagelayer.js
 var cam = new Camera();
 var grid = new Grid();
-
 var drag = 1; //0.5;
 var accel = 1;
-
 
 function render() {
   requestAnimationFrame(render);
   bgHandler.drawBackgrounds();
   game.update();
-  game.updateHud();
   messageLayer.render();
 }
 
 function init() {
-  var player = new Player(this.context, this.width/2, this.height-10, 10, 20, 10, "lime", 50, 0, 0, accel, accel);//0.4, 0.4);
+  var player = new Player(this.context, this.width/2, this.height-10, 45, 52, 10, "grey", 50, 0, 0, accel, accel);//0.4, 0.4);
+  player.addSprite(images.ship1);
   grid.init(4/3);
   cam.init(1/4, 0, 0, 0, -5);
   bgHandler.init();

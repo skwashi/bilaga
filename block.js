@@ -50,6 +50,10 @@ function Block(context, x, y, w, h, solid, mass, color, health, vX, vY) {
   this.setvX = function (vX) {this.vX = vX;}
   this.setvY = function (vY) {this.vY = vY;}
   */
+
+  this.center = function() {
+    return (this.x + Math.ceil(this.w/2));
+  }
 }
 
 
@@ -126,7 +130,11 @@ Block.prototype.draw = function() {
   } else {
     this.context.fillStyle = this.color;
   }
-  this.context.fillRect(this.x-cam.x, this.y, this.w, this.h);
+
+  if (this.hasOwnProperty("hasSprite") && this.hasSprite == true)
+    this.context.drawImage(this.sprite, this.x - cam.x, this.y);
+  else
+    this.context.fillRect(this.x-cam.x, this.y, this.w, this.h);
 };
 
 Block.prototype.move = function() {
@@ -138,9 +146,6 @@ Block.prototype.move = function() {
   this.x += this.vX;
   this.y += this.vY;
 
-  if (!this.solid)
-    this.y -= cam.vY;
-  
   var leftlim = -cam.len+game.player.w/2;
   var rightlim = cwidth + cam.len - game.player.w;
   
@@ -213,7 +218,7 @@ Block.prototype.fireLaser = function(w, h, vX, vY) {
   if (ok == 1) {
     var x = this.x + this.w/2 + 1;
     var y = this.y + this.h;
-    var laser = new Projectile(this.context, x, y, w, h, 0, "orange", 1, vX, vY+cam.vY, 0, 0);
+    var laser = new Projectile(this.context, x, y, w, h, 0, "orange", 1, vX, vY, 0, 0);
     this.spawnEProjectiles([laser]);
   }
 }
@@ -226,6 +231,7 @@ function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY) {
   this.rockets = rockets;
   this.cd = 10;
   this.cooldowns = {laser: 0, rocket: 0};
+  this.hasSprite = false;
 
   this.reset = function (x, y, rockets) {
     this.x = x;
@@ -235,6 +241,11 @@ function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY) {
     this.rockets = rockets;
     this.cooldowns = {laser: 0, rocket: 0}
   };
+
+  this.addSprite = function (sprite) {
+    this.hasSprite = true;
+    this.sprite = sprite;
+  }
 }
 
 Player.prototype = Object.create(Block.prototype, {
@@ -297,18 +308,18 @@ Player.prototype.move = function(xMove, yMove) {
     }  
   }
 
-
   
 };
 
 Player.prototype.fire = function(type, xDir) {
   var projectile = null;
+  var center = this.center();
   if (type == "rocket") {
-    proj = [new Rocket(this.context, this.x, this.y, this.vX, this.vY + cam.vY, 0, -0.3)];//-0.075)];
+    proj = [new Rocket(this.context, center, this.y, this.vX, this.vY + cam.vY, 0, -0.3)];//-0.075)];
   } else if (type == "dualLaser") {
-    proj = [new Laser(this.context, this.x + 1, this.y - 1, 5*xDir, -10+cam.vY), new Laser(this.context, this.x + this.w - 3, this.y - 1, 5*xDir, -10+cam.vY)];
+    proj = [new Laser(this.context, center-11, this.y - 1, 5*xDir, -10), new Laser(this.context, center+11, this.y - 1, 5*xDir, -10)];
   } else {
-    proj = [new Laser(this.context, this.x + this.w/2 - 1, this.y - 1, 0, -10+cam.vY)];
+    proj = [new Laser(this.context, center, this.y - 1, 0, -10)];
   }
   return proj;
 };
@@ -419,23 +430,24 @@ Projectile.prototype.deathSpawn = function () {
 
 // Some projectiles
 
-function Laser(context, x, y, vX, vY) {
-  Projectile.call(this, context, x, y, 3, 10, 0, "lightgreen", 1, vX, vY, 0, 0);
+function Laser(context, c, y, vX, vY) {
+  Projectile.call(this, context, c-2, y, 3, 10, 0, "lightgreen", 1, vX, vY, 0, 0);
 }
 Laser.prototype = Object.create(Projectile.prototype);
 Laser.prototype.deathSpawn = function () {
   return [];
 }
 
-function Rocket(context, x, y, vX, vY, aX, aY) {
-  Projectile.call(this, context, x, y, 10, 15, 100, "gray", 5, vX, vY, aX, aY);
+function Rocket(context, c, y, vX, vY, aX, aY) {
+  Projectile.call(this, context, c-6, y, 11, 15, 100, "gray", 5, vX, vY, aX, aY);
 }
 Rocket.prototype = Object.create(Projectile.prototype);
 Rocket.prototype.move = function () {
   this.vX += this.aX - drag*this.vX / this.mass;
   this.vY += this.aY - drag*this.vY / this.mass;
   
-  Projectile.prototype.move.call(this);
+  this.x += this.vX;
+  this.y += this.vY - cam.vY;
 };
 
 
