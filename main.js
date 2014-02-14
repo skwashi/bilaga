@@ -446,9 +446,9 @@ Game.prototype.update = function () {
 };
 
 function Camera() {
-  this.init = function (pan, x, y, vX, vY) {
-    this.pan = pan;
-    this.len = ((1-pan/2)/(1-pan) - 1)*cwidth;
+  this.init = function (gridwidth, pw, x, y, vX, vY) {
+    this.pan = (gridwidth - cwidth) / (gridwidth - pw);
+    this.len = (gridwidth - cwidth) / 2;
     this.x = x;
     this.y = y;
     this.vX = vX;
@@ -458,6 +458,10 @@ function Camera() {
   }
   
   this.reset = function() {
+    var gw = grid.width;
+    var pw = game.player.w;
+    this.pan = (gw - cwidth) / (gw - pw);
+    this.len = (gw - cwidth) / 2;
     this.x = 0;
     this.y = 0;
     this.vX = 0;
@@ -467,8 +471,17 @@ function Camera() {
 
 // coordinate system in which objects move
 function Grid() {
-  this.init = function (factor) {
-    this.width = 4/3 * cwidth;
+  this.init = function (width, height) {
+    this.width = width;
+    this.height = height;
+    this.left = -(width-cwidth)/2;
+    this.right = cwidth + (width - cwidth)/2
+  }
+  this.set = function (width, height) {
+    this.width = width;
+    this.height = height;
+    this.left = -(width-cwidth)/2;
+    this.right = cwidth + (width - cwidth)/2;
   }
 }
 
@@ -494,10 +507,11 @@ function init() {
   var ph = 52;
   var px = cwidth/2 - pw/2;
   var py = cheight-10;
+  var gridWidth = 940;
   var player = new Player(context, px, py, pw, ph, 10, "grey", 50, 0, 0, accel, accel, 3);//0.4, 0.4);
   player.addSprite(images.ship1);
-  grid.init(4/3);
-  cam.init(1/4, 0, 0, 0, -5);
+  grid.init(gridWidth, cheight);
+  cam.init(gridWidth, pw, 0, 0, 0, -5);
   bgHandler.init();
   game.init(player, 3);
   messageLayer.init();

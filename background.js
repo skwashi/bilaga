@@ -51,7 +51,7 @@ function Background(context, canvasWidth, canvasHeight, image, speed) {
 Background.prototype.draw = function () {
   var cw = this.canvasWidth;
   var ch = this.canvasHeight;
-  var x = cam.len;
+  var left = grid.left;
 
   if (this.offset > this.bg.height) {
     this.offset = 0;
@@ -61,12 +61,12 @@ Background.prototype.draw = function () {
   var offset = Math.floor(this.offset);
 
   if (offset == 0) {
-    this.context.drawImage(this.bg, x+xoffset, 0, cw, ch, 0, 0, cw, ch);
+    this.context.drawImage(this.bg, xoffset-left, 0, cw, ch, 0, 0, cw, ch);
   } else if (offset < ch) {
-    this.context.drawImage(this.bg, x+xoffset, 0, cw, ch-offset, 0, offset, cw, ch-offset);
-    this.context.drawImage(this.bg, x+xoffset, this.bg.height - offset, cw, offset, 0, 0, cw, offset);
+    this.context.drawImage(this.bg, xoffset-left, 0, cw, ch-offset, 0, offset, cw, ch-offset);
+    this.context.drawImage(this.bg, xoffset-left, this.bg.height - offset, cw, offset, 0, 0, cw, offset);
   } else {
-    this.context.drawImage(this.bg, x+xoffset, this.bg.height - offset, cw, ch, 0, 0, cw, ch);
+    this.context.drawImage(this.bg, xoffset-left, this.bg.height - offset, cw, ch, 0, 0, cw, ch);
   }
   
   this.offset -= this.speed * cam.vY;

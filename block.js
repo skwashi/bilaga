@@ -118,8 +118,8 @@ Block.prototype.clear = function () {
 };
 
 Block.prototype.isOutside = function () {
-  return (this.x > 1.5*(cwidth+cam.len) || this.x + this.w < -(cwidth+cam.len) ||
-	  this.y > 2*cheight || this.y + this.h < -cheight);
+  return (this.x > grid.right + cwidth || this.x + this.w < grid.left - cwidth||
+	  this.y > 2*grid.height || this.y + this.h < -grid.height);
 };
 
 Block.prototype.isGone = function () {
@@ -163,15 +163,15 @@ Block.prototype.move = function() {
   this.x += this.vX;
   this.y += this.vY;
 
-  var leftlim = -cam.len+game.player.w/2;
-  var rightlim = cwidth + cam.len - game.player.w;
+  var leftlim = grid.left; // game.player.w/2;
+  var rightlim = grid.right; // - game.player.w;
   
   if (this.solid) {
     if (this.y <= 0) {
       this.y = 0;
       this.vY = -this.vY;
-    } else if (this.y + this.h >= cheight) {
-      this.y = cheight - this.h;
+    } else if (this.y + this.h >= grid.height) {
+      this.y = grid.height - this.h;
       this.vY = -this.vY;
     }
   
@@ -285,7 +285,7 @@ Player.prototype = Object.create(Block.prototype, {
 
 Player.prototype.moveOut = function() {
   this.vY -= this.aY;
-  this.y += this.vY - cam.vY;  
+  this.y += this.vY; // cam.vY;  
 };
 
 Player.prototype.move = function(xMove, yMove) {
@@ -310,34 +310,35 @@ Player.prototype.move = function(xMove, yMove) {
   cam.vX = cam.pan*this.vX;
   cam.x += cam.vX;
 
-  var leftlim = -cam.len;
-  var rightlim = cwidth + cam.len;
-
   if (this.solid) {
     if (this.y <= 0) {
       this.y = 0;
       this.vY = -this.vY;
-    } else if (this.y + this.h >= cheight) {
-      this.y = cheight - this.h;
+    } else if (this.y + this.h >= grid.height) {
+      this.y = grid.height - this.h;
       this.vY = -this.vY;
     }
   
-    if (this.x <= leftlim) {
-      this.x = leftlim;
+    if (this.x <= grid.left) {
+      this.x = grid.left;
       this.vX = -this.vX;
-      cam.x = -cam.len;
+      cam.x = grid.left;
       cam.vX = 0;
-    } else if (this.x + this.w >= rightlim) {
-      this.x = rightlim - this.w;
+    } else if (this.x + this.w >= grid.right) {
+      this.x = grid.right - this.w;
       this.vX = -this.vX;
       cam.x = cam.len;
       cam.vX = 0;
     }  
   }
 
-  if (cam.x < -cam.len || cam.x > cam.len) {
+  if (cam.x < grid.left) {
+    console.log("Shouldn't happen! -- " + (grid.left - cam.x));
+    cam.x = grid.left;
+  }
+  if (cam.x > cam.len) {
     console.log("Shouldn't happen! -- " + (cam.x - cam.len));
-    cam.x = -cam.len;
+    cam.x = cam.len;
   }
   
 };
@@ -427,17 +428,17 @@ Mover.prototype.move = function() {
   if (this.y <= 0) {
     this.y = 0;
     this.vY = -this.vY;
-  } else if (this.y + this.h >= cheight) {
-    this.y = cheight - this.h;
+  } else if (this.y + this.h >= grid.height) {
+    this.y = grid.height - this.h;
     this.vY = -this.vY;
   }
   
-  if (this.x <= 0) {
-    this.x = 0;
+  if (this.x <= grid.left + this.w) {
+    this.x = grid.left + this.w;
     this.vX = -this.vX;
     this.y += (this.h+1)*this.vY;
-  } else if (this.x + this.w >= cwidth) {
-    this.x = cwidth - this.w;
+  } else if (this.x + this.w >= grid.right - this.w) {
+    this.x = grid.right - this.w - this.w;
     this.vX = -this.vX;
     this.y += (this.h+1)*this.vY;
   }
