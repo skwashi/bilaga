@@ -247,7 +247,7 @@ Player.prototype = Object.create(Block.prototype, {
 
 Player.prototype.moveOut = function() {
   this.vY -= this.aY;
-  this.y += this.vY;  
+  this.y += this.vY - cam.vY;  
 };
 
 Player.prototype.move = function(xMove, yMove) {

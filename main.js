@@ -249,6 +249,7 @@ Game.prototype.update = function () {
       this.loadLevel(this.levelNum);
     }
   } else if (this.levelCompleted) {
+    cam.vY = 5*cam.defSpeed;
     if (this.player.isOutside()) {
       messageLayer.nextLevel();
       if (keys["space"]) {
@@ -264,7 +265,7 @@ Game.prototype.update = function () {
   } else {
     // player keyboard interaction
     this.interact();
-  
+    
     // decrease player cooldowns
     for (var key in this.player.cooldowns) {
       if (this.player.cooldowns[key] > 0) {
@@ -488,6 +489,7 @@ function Camera() {
     this.y = y;
     this.vX = vX;
     this.vY = vY;
+    this.defSpeed = vY;
   }
 }
 
