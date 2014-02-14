@@ -90,7 +90,7 @@ function field(w, h, vY, space, health) {
 
 function timeField(num, w, h, vY, space, health) {
   var tField = {};
-  var delay = 2*cheight/vY;
+  var delay = Math.ceil(2*cheight/vY);
   var t = 60;
   for (var i = 0; i < num; i++) {
     tField[t] = new EWave(field(w, h, vY, space, health));
@@ -172,7 +172,7 @@ function loadLevel(number) {
   */
   else if (number == 2) {
     return new Level([{1:(new MWave("Level 2", 120)), 2:(new DWave())},
-		      timeField(5, 60, 80, 3, 2, 1),
+		      timeField(1, 60, 80, 3, 2, 1),
 		      {1:(new MWave("Warning: Speed increased!", 120)), 2: (new SpeedWave(-9)), 3:(new DWave())},
 		      timeField(5, 60, 80, 7, 2, 1)], [0, 120, 60, 60], 0.5);
   }
