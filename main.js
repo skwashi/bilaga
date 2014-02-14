@@ -43,7 +43,7 @@ function Game() {
     var hudHeight = hudCanvas.height;
 
     this.hud = new Hud(this, hudContext, hudWidth, hudHeight);
-    this.player = new Player(this.context, this.width/2, this.height-10, 10, 20, 10, colors.gradient, 50, 0, 0, accel, accel);//0.4, 0.4);
+    this.player = new Player(this.context, this.width/2, this.height-10, 10, 20, 10, "lime", 50, 0, 0, accel, accel);//0.4, 0.4);
     this.playerAlive = true;
     this.enemies = [];
     this.projectiles = [];
@@ -192,7 +192,7 @@ Game.prototype.interact = function () {
       player.cooldowns.laser = player.cd;
     }
   }
-  if (keys["w"] && player.rockets > 0) {
+  if ((keys["w"] || keys["e"]) && player.rockets > 0) {
     if (player.cooldowns.rocket == 0) {
       this.projectiles = this.projectiles.concat(player.fire("rocket", 0));
       player.cooldowns.rocket = player.cd;
