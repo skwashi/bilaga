@@ -34,7 +34,7 @@ var images = new function () {
 
   this.background.src = "imgs/background2.png";
   this.stars.src = "imgs/staars.png";
-  this.ship1.src = "imgs/ship1.png";
+  this.ship1.src = "imgs/ship2.png";
   this.ship1l.src = "imgs/ship1l.png";
   this.ship1r.src = "imgs/ship1r.png";
 };
