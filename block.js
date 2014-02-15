@@ -11,7 +11,7 @@ function Block(context, x, y, w, h, solid, mass, color, health, vX, vY) {
   this.y = y;
   this.w = w;
   this.h = h;
-  this.col = {x: x, y: y, w: w, h: h};
+  this.cols = [{xoff: 0, yoff: 0, w: w, h: h}];
   this.solid = solid;
   this.mass = mass;
   this.color = color;
@@ -47,7 +47,15 @@ function Block(context, x, y, w, h, solid, mass, color, health, vX, vY) {
   this.setVal = function(valName, val) {this[valName] = val;};
 
   this.center = function() {
-    return {x: (this.x + Math.ceil(this.w/2)), y: (this.y + Math.ceil(this.h/2))};
+    return {x: (this.x + Math.ceil((this.w+1)/2)), y: (this.y + Math.ceil((this.h+1)/2))};
+  }
+
+  this.clearCols = function () {
+    this.cols = [];
+  }
+
+  this.addCol = function(xoff, yoff, w, h) {
+    this.cols.push ({xoff: xoff, yoff: yoff, w: w, h: h});
   }
 }
 
@@ -115,6 +123,7 @@ Block.prototype.draw = function() {
   if (this.hasShield) {
     this.drawShield();
   }
+
 };
 
 Block.prototype.drawShield = function() {
@@ -125,6 +134,19 @@ Block.prototype.drawShield = function() {
   this.context.closePath();
   this.context.fill();
   this.context.globalAlpha = 1;
+}
+
+Block.prototype.drawCols = function() {
+  this.context.fillStyle = "rgba(55,200,55,0.5)";
+  var x, y, w, h;
+  for (var i = 0, len = this.cols.length; i < len; i++) {
+    x = this.x + this.cols[i].xoff - cam.x;
+    y = this.y + this.cols[i].yoff;
+    w = this.cols[i].w;
+    h = this.cols[i].h;
+    this.context.fillRect(x, y, w, h);
+    console.log(x); console.log(y); console.log(w); console.log(h);
+  }
 }
 
 Block.prototype.move = function() {
@@ -160,10 +182,30 @@ Block.prototype.move = function() {
 };
 
 Block.prototype.collide = function(block) {
-  return (block.x <= this.x + this.w &&
-	  this.x <= block.x + block.w &&
-	  block.y <= this.y + this.h &&
-	  this.y <= block.y + block.h);
+  var x, y, w, h, bx, by, bw, bh;
+  var collision = false;
+
+  for (var i = 0, len = this.cols.length; i < len; i++) {
+    for (var j = 0, blen = block.cols.length; j < blen; j++) {
+      x = this.x + this.cols[i].xoff;
+      y = this.y + this.cols[i].yoff;
+      w = this.cols[i].w;
+      h = this.cols[i].h;
+      bx = block.x + block.cols[j].xoff;
+      by = block.y + block.cols[j].yoff;
+      bw = block.cols[j].w;
+      bh = block.cols[j].h;
+      collision = collision || (bx <= x + w &&
+				x <= bx + bw &&
+				by <= y + h &&
+				y <= by + bh);
+      if (collision == true)
+	break;
+    }
+    if (collision == true)
+      break;
+  }
+  return collision;
 };
 
 Block.prototype.takeDamage = function(damage) {

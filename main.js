@@ -438,6 +438,7 @@ Game.prototype.update = function () {
   if (this.playerAlive && !this.player.isOutside()) {
     this.player.time++;
     this.player.draw();
+    this.player.drawCols();
   }
 
   this.updateEnemyProjectiles();
@@ -514,12 +515,18 @@ function render() {
 }
 
 function init() {
-  var pw = 45;
-  var ph = 52;
-  var px = cwidth/2 - pw/2;
+  var pw = images.ship1.width;//45;
+  var ph = images.ship1.height;//52;
+  var px = Math.floor(cwidth/2 - pw/2);
   var py = cheight-10;
   var player = new Player(context, px, py, pw, ph, 10, "grey", 50, 0, 0, accel, accel, 3);//0.4, 0.4);
-  player.addSprite(images.ship1);
+  player.addSprite(images.ship1);2
+  player.clearCols();
+  player.addCol(17, 7, 11, 13);
+  player.addCol(11, 20, 23, 6);
+  player.addCol(4, 26, 37, 11);
+  player.addCol(14, 37, 17, 9);
+  player.addCol(8, 46, 29, 4);
   grid.init(gridWidth, cheight);
   cam.init(gridWidth, pw, 0, 0, 0, -5);
   bgHandler.init();

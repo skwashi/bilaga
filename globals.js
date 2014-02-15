@@ -72,6 +72,7 @@ document.onkeyup = function(e) {
 
 var mouse = {x:0, y:0};
 
+/*
 function getMousePos(canvas, evt) {
   var rect = canvas.getBoundingClientRect();
   return {
@@ -84,7 +85,7 @@ document.body.addEventListener('mousemove', function(evt) {
   if (game.playerAlive && !game.player.isOutside())
     game.player.mouseMove();
 }, false);
-
+*/
 /**
  * Color definitions
  */
