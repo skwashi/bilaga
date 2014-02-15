@@ -463,6 +463,11 @@ Projectile.prototype.deathSpawn = function () {
   return [];
 }
 
+Projectile.prototype.move = function () {
+  this.x += cam.vX;
+  Block.prototype.move.call(this);
+}
+
 // Some projectiles
 
 function Laser(context, c, y, vX, vY) {
