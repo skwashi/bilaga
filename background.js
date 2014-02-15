@@ -5,8 +5,10 @@ var images = new function () {
   this.stars = new Image();
   this.marble = new Image();
   this.ship1 = new Image();
+  this.ship1l = new Image();
+  this.ship1r = new Image();
   
-  var numImages = 2;
+  var numImages = 5;
   var numLoaded = 0;
 
   function imageLoaded() {
@@ -33,6 +35,8 @@ var images = new function () {
   this.background.src = "imgs/background2.png";
   this.stars.src = "imgs/staars.png";
   this.ship1.src = "imgs/ship1.png";
+  this.ship1l.src = "imgs/ship1l.png";
+  this.ship1r.src = "imgs/ship1r.png";
 };
 
 

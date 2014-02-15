@@ -160,12 +160,14 @@ Game.prototype.handleInput = function () {
 
   if (keys["left"]) {
     xMove -= 1;
+    this.player.dir -= 1;
   }
   if (keys["up"]) {
     yMove -= 1;
   }
   if (keys["right"]) {
     xMove += 1;
+    this.player.dir += 1;
   }  
   if (keys["down"]) {
     yMove += 1;
@@ -253,6 +255,7 @@ Game.prototype.handleInput = function () {
 
 Game.prototype.frameReset = function () {
   cam.vX = 0;
+  this.player.dir = 0;
   this.playerCollision = false;
   this.player.hasShield = true;
   // clear canvas
@@ -438,7 +441,7 @@ Game.prototype.update = function () {
   if (this.playerAlive && !this.player.isOutside()) {
     this.player.time++;
     this.player.draw();
-    this.player.drawCols();
+//    this.player.drawCols();
   }
 
   this.updateEnemyProjectiles();

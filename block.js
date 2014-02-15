@@ -115,8 +115,15 @@ Block.prototype.draw = function() {
     this.context.fillStyle = this.color;
   }
 
-  if (this.hasSprite == true)
-    this.context.drawImage(this.sprite, this.x - cam.x, this.y);
+  if (this.hasSprite == true) {
+    if (this.dir == 0)
+      this.context.drawImage(this.sprite, this.x - cam.x, this.y);
+    else if (this.dir == -1)
+      this.context.drawImage(images.ship1l, this.x - cam.x, this.y);
+    else if (this.dir == 1)
+      this.context.drawImage(images.ship1r, this.x - cam.x, this.y);
+      
+  }
   else
     this.context.fillRect(this.x-cam.x, this.y, this.w, this.h);
 
@@ -268,6 +275,7 @@ function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY, lives
   this.hasShield = true;
   this.lives = lives;
   this.time = 0;
+  this.dir = 0;
 
   this.reset = function (rockets) {
     this.x = this.initial.x;
