@@ -69,6 +69,22 @@ document.onkeyup = function(e) {
   }
 };
 
+
+var mouse = {x:0, y:0};
+
+function getMousePos(canvas, evt) {
+  var rect = canvas.getBoundingClientRect();
+  return {
+    x: evt.clientX - rect.left,
+    y: evt.clientY - rect.top
+  };
+}
+document.body.addEventListener('mousemove', function(evt) {
+  mouse = getMousePos(canvas, evt);
+  if (game.playerAlive && !game.player.isOutside())
+    game.player.mouseMove();
+}, false);
+
 /**
  * Color definitions
  */

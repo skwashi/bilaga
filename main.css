@@ -11,6 +11,7 @@ body {
 }
 
 canvas {
+    cursor: none;
     position: absolute;
     border: 1px solid #000;
     background: transparent;

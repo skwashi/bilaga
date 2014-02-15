@@ -19,6 +19,7 @@ function Block(context, x, y, w, h, solid, mass, color, health, vX, vY) {
   this.maxHealth = health;
   this.vX = vX;
   this.vY = vY;
+  this.hasSprite = false;
   this.showHit = 0;
   this.hasShield = false;
   this.alive = true;
@@ -44,39 +45,11 @@ function Block(context, x, y, w, h, solid, mass, color, health, vX, vY) {
   }
 
   this.setVal = function(valName, val) {this[valName] = val;};
-  /*
-  this.setx = function (x) {this.x = x;}
-  this.sety = function (y) {this.y = y;}
-  this.setw = function (w) {this.w = h;}
-  this.seth = function (h) {this.h = h;}
-  this.setvX = function (vX) {this.vX = vX;}
-  this.setvY = function (vY) {this.vY = vY;}
-  */
 
   this.center = function() {
     return {x: (this.x + Math.ceil(this.w/2)), y: (this.y + Math.ceil(this.h/2))};
   }
 }
-
-/*
-Block.prototype = {
-  x: 10,
-  y: 10,
-  w: 20,
-  h: 20,
-  solid: false,
-  mass: 50,
-  color: "purple",
-  health: 1,
-  maxHealth: 1,
-  vX: 0,
-  vY: 0,
-  showHit: 0,
-  alive: true,
-  timeToDeath: 0,
-  actions: {}
-};
-*/
 
 Block.prototype.isSolid = function () {
   return this.solid;
@@ -134,7 +107,7 @@ Block.prototype.draw = function() {
     this.context.fillStyle = this.color;
   }
 
-  if (this.hasOwnProperty("hasSprite") && this.hasSprite == true)
+  if (this.hasSprite == true)
     this.context.drawImage(this.sprite, this.x - cam.x, this.y);
   else
     this.context.fillRect(this.x-cam.x, this.y, this.w, this.h);
@@ -288,7 +261,38 @@ Player.prototype.moveOut = function() {
   this.y += this.vY; // cam.vY;  
 };
 
+Player.prototype.mouseMove = function() {
+  var dx = 0.1*(mouse.x - this.x);
+  var dy = 0.1*(mouse.y - this.y);
+  this.x += dx;
+  this.y += dy;
+
+  cam.vX = cam.pan*dx;
+  cam.x += cam.vX;
+  if (this.y <= 0) {
+    this.y = 0;
+    this.vY = -this.vY;
+  } else if (this.y + this.h >= grid.height) {
+    this.y = grid.height - this.h;
+    this.vY = -this.vY;
+  }
+  
+  if (this.x <= grid.left) {
+    this.x = grid.left;
+    this.vX = -this.vX;
+    cam.x = grid.left;
+    cam.vX = 0;
+  } else if (this.x + this.w >= grid.right) {
+    this.x = grid.right - this.w;
+    this.vX = -this.vX;
+    cam.x = cam.len;
+    cam.vX = 0;
+  }
+  
+}
+
 Player.prototype.move = function(xMove, yMove) {
+
   var len = 1;
   if (xMove != 0 && yMove != 0)
     len = Math.sqrt(xMove*xMove + yMove*yMove);
