@@ -238,6 +238,16 @@ Game.prototype.handleInput = function () {
       player.cooldowns.rocket = 5*player.cd;
     }
   }
+  
+  if (keys["1"]) {
+    grid.set(940, cheight);
+    this.start();
+  }
+  if (keys["2"]) {
+    grid.set(cwidth, cheight);
+    this.start();
+  }
+     
 
 }
 
@@ -417,13 +427,13 @@ Game.prototype.updateHud = function () {
 };
 
 Game.prototype.update = function () {
-
+  
   this.frameReset();
   this.updateWave();
   this.updatePlayer();
   this.updateEnemies();
   this.updateMisc();
-
+  
   // draw player after enemies and misc but before projecties
   if (this.playerAlive && !this.player.isOutside()) {
     this.player.time++;
@@ -494,6 +504,7 @@ var cam = new Camera();
 var grid = new Grid();
 var drag = 1; //0.5;
 var accel = 1;
+var gridWidth = 940;
 
 function render() {
   requestAnimationFrame(render);
@@ -507,7 +518,6 @@ function init() {
   var ph = 52;
   var px = cwidth/2 - pw/2;
   var py = cheight-10;
-  var gridWidth = 940;
   var player = new Player(context, px, py, pw, ph, 10, "grey", 50, 0, 0, accel, accel, 3);//0.4, 0.4);
   player.addSprite(images.ship1);
   grid.init(gridWidth, cheight);

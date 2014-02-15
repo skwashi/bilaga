@@ -424,23 +424,37 @@ Mover.prototype = Object.create(Enemy.prototype);
 Mover.prototype.move = function() {
   this.x += this.vX;
   //this.y += this.vY;  
+  var jump = (this.h+1)*this.vY;
   
+  /*
   if (this.y <= 0) {
     this.y = 0;
     this.vY = -this.vY;
   } else if (this.y + this.h >= grid.height) {
     this.y = grid.height - this.h;
     this.vY = -this.vY;
+    console.log(this.y);
+    console.log(this.vY);
   }
+  */
+  var dojump = false;
   
-  if (this.x <= grid.left + this.w) {
-    this.x = grid.left + this.w;
+  if (this.x <= grid.left) {
+    this.x = grid.left;
     this.vX = -this.vX;
-    this.y += (this.h+1)*this.vY;
-  } else if (this.x + this.w >= grid.right - this.w) {
-    this.x = grid.right - this.w - this.w;
+    dojump = true;
+  } else if (this.x + this.w >= grid.right) {
+    this.x = grid.right - this.w;
     this.vX = -this.vX;
-    this.y += (this.h+1)*this.vY;
+    dojump = true;
+  }
+
+  if (dojump) {
+    if (this.y + jump < 0 || this.y + jump + this.h > grid.height) {
+      jump = -jump;
+      this.vY = - this.vY;
+    }
+    this.y += jump;
   }
 };
 
@@ -464,7 +478,7 @@ Projectile.prototype.deathSpawn = function () {
 }
 
 Projectile.prototype.move = function () {
-  this.x += cam.vX;
+//  this.x += cam.vX;
   Block.prototype.move.call(this);
 }
 
