@@ -115,15 +115,8 @@ Block.prototype.draw = function() {
     this.context.fillStyle = this.color;
   }
 
-  if (this.hasSprite == true) {
-    if (this.dir == 0)
-      this.context.drawImage(this.sprite, this.x - cam.x, this.y);
-    else if (this.dir == -1)
-      this.context.drawImage(images.ship1l, this.x - cam.x, this.y);
-    else if (this.dir == 1)
-      this.context.drawImage(images.ship1r, this.x - cam.x, this.y);
-      
-  }
+  if (this.hasSprite == true)
+    this.context.drawImage(this.sprite, this.x - cam.x, this.y);      
   else
     this.context.fillRect(this.x-cam.x, this.y, this.w, this.h);
 
@@ -275,7 +268,10 @@ function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY, lives
   this.hasShield = true;
   this.lives = lives;
   this.time = 0;
-  this.dir = 0;
+  this.sprites = {};
+  this.angle = 0;
+  this.angleInc = 5;
+  this.angleMax = 45;
 
   this.reset = function (rockets) {
     this.x = this.initial.x;
@@ -288,13 +284,16 @@ function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY, lives
     this.hasShield = true;
   };
 
-  this.addSprite = function (sprite) {
+  this.addSprite = function (angle, sprite) {
     this.hasSprite = true;
-    this.sprite = sprite;
-    this.x += (sprite.width - this.width)/2;
-    this.y += (sprite.width - this.width)/2;
-    this.w = sprite.width;
-    this.h = sprite.height;
+    if (angle == 0) {
+      this.sprite = sprite;
+      this.x += (sprite.width - this.width)/2;
+      this.y += (sprite.width - this.width)/2;
+      this.w = sprite.width;
+      this.h = sprite.height;
+    }
+      this.sprites[angle] = sprite;
   }
 }
 
@@ -342,6 +341,20 @@ Player.prototype.mouseMove = function() {
 }
 
 Player.prototype.move = function(xMove, yMove) {
+  
+  var sign = (this.angle == 0) ? 0 : ((this.angle > 0) ? 1 : -1);
+  var inc = 4;
+  
+  if (sign*this.angle < inc)
+    this.angle = 0;
+  else
+    this.angle -= inc*sign;
+
+  this.angle += (5+inc)*xMove;
+
+  
+  if (this.angle*sign > this.angleMax)
+    this.angle = sign*this.angleMax;
 
   var len = 1;
   if (xMove != 0 && yMove != 0)
@@ -395,6 +408,27 @@ Player.prototype.move = function(xMove, yMove) {
     cam.x = cam.len;
   }
   
+};
+
+Player.prototype.draw = function() {
+  this.context.fillStyle = this.color;
+  var angle = Math.floor(this.angle/this.angleInc) * this.angleInc;
+
+
+  if (this.hasSprite == true) {
+    if (typeof(this.sprites[angle]) === "undefined" ) {
+      this.context.drawImage(this.sprites[0], this.x - cam.x, this.y);
+    } else {
+      this.context.drawImage(this.sprites[angle], this.x - cam.x, this.y);
+    }
+  }
+  else
+    this.context.fillRect(this.x-cam.x, this.y, this.w, this.h);
+
+  if (this.hasShield) {
+    this.drawShield();
+  }
+
 };
 
 Player.prototype.fire = function(type, xDir) {

@@ -160,14 +160,12 @@ Game.prototype.handleInput = function () {
 
   if (keys["left"]) {
     xMove -= 1;
-    this.player.dir -= 1;
   }
   if (keys["up"]) {
     yMove -= 1;
   }
   if (keys["right"]) {
     xMove += 1;
-    this.player.dir += 1;
   }  
   if (keys["down"]) {
     yMove += 1;
@@ -510,33 +508,50 @@ var drag = 1; //0.5;
 var accel = 1;
 var gridWidth = 940;
 
-function render() {
-  requestAnimationFrame(render);
-  bgHandler.drawBackgrounds();
-  game.update();
-  messageLayer.render();
-}
-
-function init() {
-  var pw = images.ship1.width;//45;
-  var ph = images.ship1.height;//52;
+function loadPlayer(inc, max) {
+  var filename = "imgs/ship.png";
+  images.load(filename);
+  var pw = images.get(filename).width;//45;
+  var ph = images.get(filename).height;//52;
   var px = Math.floor(cwidth/2 - pw/2);
-  var py = cheight-10;
+  var py = cheight-ph;
   var player = new Player(context, px, py, pw, ph, 10, "grey", 50, 0, 0, accel, accel, 3);//0.4, 0.4);
-  player.addSprite(images.ship1);2
+  player.addSprite(0, images.get(filename));
+  for (var i = inc; i <= max; i += inc) {
+    filename = "imgs/shipr"+i+".png";
+    images.load(filename);
+    player.addSprite(i, images.get(filename));
+    filename = "imgs/shipl"+i+".png";
+    images.load(filename);
+    player.addSprite(-i, images.get(filename));
+  }
+  player.angleInc = inc;
+  player.angleMax = max;
   player.clearCols();
   player.addCol(17, 7, 11, 13);
   player.addCol(11, 20, 23, 6);
   player.addCol(4, 26, 37, 11);
   player.addCol(14, 37, 17, 9);
   player.addCol(8, 46, 29, 4);
+  return player;
+}
+
+function init() {
+  var player = loadPlayer(5, 45);
   grid.init(gridWidth, cheight);
-  cam.init(gridWidth, pw, 0, 0, 0, -5);
+  cam.init(gridWidth, player.w, 0, 0, 0, -5);
   bgHandler.init();
   game.init(player, 3);
   messageLayer.init();
   game.start();
   render();  
+}
+
+function render() {
+  requestAnimationFrame(render);
+  bgHandler.drawBackgrounds();
+  game.update();
+  messageLayer.render();
 }
 
 window.onload = function() {

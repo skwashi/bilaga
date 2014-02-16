@@ -36,21 +36,24 @@ function Level(waves, delay, drag) {
   this.drag = drag;
 }
 
-/*
-function downers(xmod) {
-  var down = [];
-  var space = (width-100)/10;
-  var w = 0.7*space;
-  var h = space;
-  for (var x = space+xmod; x <= width - space; x += space+w) {
-      down.push(new Straight(context, x, -3.5*h, w, h, 100, colors.gradient, 6, 0, 7));
+function LevelT(number, drag) {
+  this.waves = {};
+  this.numWaves = 0;
+  this.number = number;
+  this.drag = drag;
+  
+  this.addWave = function (y, wave) {
+    this.waves[y] = wave;
   }
-  for (var x = space+xmod; x <= width - space; x += space+w) {
-      down.push(new Straight(context, x, -1.5*h, w, h, 100, colors.gradient, 6, 0, 7));
+
+  this.addWaves = function (array) {
+    for (var i = 0, len = array.length; i < len; i++) 
+      this.addWave(array[i][0], array[i][1]);
   }
-  return down;
+
 }
-*/
+
+
 function downers(xmod, health) {
   var num = 10;
   var down = [];

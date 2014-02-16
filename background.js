@@ -1,42 +1,30 @@
 // Reposistory of images
 
 var images = new function () {
+   
+  var numImages = 0;
+
+  this.repo = {};
+
+  this.load = function (filename) {
+    var image = new Image();
+    image.src = filename;
+    this.repo[filename] = image;
+    console.log(this.repo[filename]);
+    numImages++;
+  }
+
+  this.get = function (filename) {
+    return this.repo[filename];
+  }
+
   this.background = new Image();
   this.stars = new Image();
-  this.marble = new Image();
   this.ship1 = new Image();
-  this.ship1l = new Image();
-  this.ship1r = new Image();
-  
-  var numImages = 5;
-  var numLoaded = 0;
-
-  function imageLoaded() {
-    numLoaded++;
-    /*
-    if (numLoaded == numImages) {
-      window.init();
-    }
-    */
-  }
-  
-  this.background.onload = function () {
-    imageLoaded();
-  }
-
-  this.stars.onload = function () {
-    imageLoaded();
-  }
-  
-  this.ship1.onload = function () {
-    imageLoaded();
-  }
 
   this.background.src = "imgs/background2.png";
   this.stars.src = "imgs/staars.png";
-  this.ship1.src = "imgs/ship2.png";
-  this.ship1l.src = "imgs/ship1l.png";
-  this.ship1r.src = "imgs/ship1r.png";
+  this.ship1.src = "imgs/ship4.png";
 };
 
 
@@ -63,7 +51,7 @@ Background.prototype.draw = function () {
 
   var xoffset = this.speed*cam.x;
   var offset = Math.floor(this.offset);
-
+  
   if (offset == 0) {
     this.context.drawImage(this.bg, xoffset-left, 0, cw, ch, 0, 0, cw, ch);
   } else if (offset < ch) {
@@ -86,7 +74,7 @@ function BGHandler() {
     this.backgrounds = [];
     this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.background, 1/10)); // 1/9
     this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.stars, 2/5)); // 1/6
-//    this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.grass, 1)); 
+//    this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.forest, 1)); 
   };
   
   this.drawBackgrounds = function () {
