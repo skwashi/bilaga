@@ -147,7 +147,7 @@ function loadLevel(number) {
     for (var x = 10; x <= cwidth-40; x += (cwidth-50)/10) {
       mover = new Mover(context, x, 5, 30, 30, 100, colors.gradient, 5, 3, 1.5);
       mover.cycleLength = 60;
-      mover.addAction(60, ["fireLaser", 5, 15, 0, 3]);
+      mover.addAction(60, ["fireLaser", 5, 15, 0, 10]);
       movers.push(mover);
     }
    

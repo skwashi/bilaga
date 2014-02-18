@@ -10,7 +10,7 @@ var images = new function () {
     var image = new Image();
     image.src = filename;
     this.repo[filename] = image;
-    console.log(this.repo[filename]);
+    console.log("Loaded " + filename);
     numImages++;
   }
 
@@ -20,11 +20,13 @@ var images = new function () {
 
   this.background = new Image();
   this.stars = new Image();
-  this.ship1 = new Image();
+  this.ship = new Image();
+  this.bg = new Image();
+  this.bg.src = "maps/hoho.png";
 
   this.background.src = "imgs/background2.png";
   this.stars.src = "imgs/staars.png";
-  this.ship1.src = "imgs/ship4.png";
+  this.ship.src = "imgs/ship.png";
 };
 
 
@@ -74,14 +76,88 @@ function BGHandler() {
     this.backgrounds = [];
     this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.background, 1/10)); // 1/9
     this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.stars, 2/5)); // 1/6
-//    this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.forest, 1)); 
+    //this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.bg, 1)); 
   };
   
   this.drawBackgrounds = function () {
-//    this.bgContext.fillStyle = "black";
-//    this.bgContext.fillRect(0, 0, this.bgWidth, this.bgHeight);
     for (var bg = 0; bg < this.backgrounds.length; bg++) {
       this.backgrounds[bg].draw();
     }
   };
+
 }
+
+
+
+/*
+var bgcanvas = document.getElementById("background");
+var c = bgcanvas.getContext("2d");
+
+
+$.ajaxSetup({
+  dataType: "json"
+}
+
+function Scene() {
+  this.tileset = null;
+  this.load = function (name) {
+    return $.ajax({
+      url: "maps/" + name + ".json"
+    };
+  }
+}
+
+var scene = {
+  layers: [],
+  renderLayer: function(layer) {
+    if (layer.type !== "tilelayer" || !layer.opacity) {
+      return; 
+    }
+    var s = c.canvas.cloneNode();
+    var size = scene.data.tilewidth;
+    s = s.getContext("2d");
+    if (scene.layers.length < scene.data.layers.length) {
+      layer.data.forEach(function(tile_idx, i) {
+	if (!tile_idx) { return; }
+	var img_x, img_y, s_x, s_y;
+	var tile = scene.data.tilesets[0];
+	tile_idx--;
+	img_x = (tile_idx % (tile.imagewidth / size))*size;
+	img_y = ~~(tile_idx / (tile.imagewidth / size))*size;
+	s_x = (i % layer.width) * size;
+	s_y = ~~(i / layer.width) * size;
+	s.drawImage(scene.tileset, img_x, img_y, size, size,
+		    s_x, s_y, size, size);
+      });
+      scene.layers.push(s.canvas.toDataURL());
+      c.drawImage(s.canvas, 0, 0);
+    } else {
+      scene.layers.forEach(function(src) {
+	var i = $("<img />", { src: src })[0];
+	c.drawImage(i, 0, 0);
+      });
+    }
+  },
+  render: function (layer) {
+    var src = this.layers[layer];
+    var i = $("<img />", { src: src})[0];
+    c.drawImage(i,300,300);
+  },
+  renderLayers: function (layers) {
+    layers = $.isArray(layers) ? layers : this.data.layers;
+    layers.forEach(this.renderLayer);
+  },
+  loadTileset: function(json) {
+    this.data = json;
+    this.tileset = $("<img />", {src: json.tilesets[0].image})[0]
+    this.tileset.onload = $.proxy(this.renderLayers, this);
+  },
+  load: function(name) {
+    return $.ajax({
+      url: "maps/"+ name + ".json",
+      data: "JSON"
+    }).done($.proxy(this.loadTileset, this));
+  }
+}
+*/
+

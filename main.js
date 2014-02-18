@@ -446,7 +446,7 @@ Game.prototype.update = function () {
   this.updateProjectiles();
 
   this.updateHud();
-
+  cam.move();
 
   if (this.playerCollision && !this.player.hasShield) {
     var playerExplosion = this.player.deathSpawn();
@@ -479,6 +479,11 @@ function Camera() {
     this.vX = 0;
     this.vY = this.levelSpeed;
   }
+
+  this.move = function () {
+//    cam.x += cam.vX;
+    cam.y += cam.vY;
+  }
 }
 
 // coordinate system in which objects move
@@ -508,15 +513,9 @@ var drag = 1; //0.5;
 var accel = 1;
 var gridWidth = 940;
 
-function loadPlayer(inc, max) {
-  var filename = "imgs/ship.png";
-  images.load(filename);
-  var pw = images.get(filename).width;//45;
-  var ph = images.get(filename).height;//52;
-  var px = Math.floor(cwidth/2 - pw/2);
-  var py = cheight-ph;
-  var player = new Player(context, px, py, pw, ph, 10, "grey", 50, 0, 0, accel, accel, 3);//0.4, 0.4);
-  player.addSprite(0, images.get(filename));
+
+function loadPlayerSprites(player, inc, max) {
+  var filename;
   for (var i = inc; i <= max; i += inc) {
     filename = "imgs/shipr"+i+".png";
     images.load(filename);
@@ -533,18 +532,6 @@ function loadPlayer(inc, max) {
   player.addCol(4, 26, 37, 11);
   player.addCol(14, 37, 17, 9);
   player.addCol(8, 46, 29, 4);
-  return player;
-}
-
-function init() {
-  var player = loadPlayer(5, 45);
-  grid.init(gridWidth, cheight);
-  cam.init(gridWidth, player.w, 0, 0, 0, -5);
-  bgHandler.init();
-  game.init(player, 3);
-  messageLayer.init();
-  game.start();
-  render();  
 }
 
 function render() {
@@ -552,8 +539,115 @@ function render() {
   bgHandler.drawBackgrounds();
   game.update();
   messageLayer.render();
+  map.renderLayers(bgHandler.bgContext);
+}
+
+
+function Map (name) {
+  this.name = name;
+  this.data = null;
+  this.tileset = null;
+  this.width = 0;
+  this.height = 0;
+  this.tilewidth = 0;
+  this.tileheight = 0;
+  this.tileIW = 0;
+  this.tileIH = 0;
+  this.layers = [];
+
+  this.load = function () {
+    $.getJSON("maps/" + this.name + ".json").done($.proxy(this.loadTileset, this));	      
+  };
+
+  this.loadTileset = function(json) {
+    this.data = json;
+    this.width = json.width;
+    this.height = json.height;
+    this.tilewidth = json.tilewidth;
+    this.tileheight = json.tileheight;
+    this.tileIW = json.tilesets[0].imagewidth;
+    this.tileIH = json.tilesets[0].imageheight;
+    this.tileset = $("<img />", {src: json.tilesets[0].image})[0];
+    this.tileset.onload = $.proxy(this.loadLayers, this);
+  };
+
+  this.loadLayers = function() {
+    for (var l = 0, len = this.data.layers.length; l < len; l++) {
+      this.layers[l] = this.data.layers[l];
+      this.layers[l].matrix = [];
+      for (var i = 0; i < this.height; i++) {
+	this.layers[l].matrix[i] = [];
+	for (var j = 0; j < this.width; j++) {
+	  this.layers[l].matrix[i][j] = this.layers[l].data[this.height*i + j];
+	}
+      }
+    }
+  }
+
+  this.renderLayer = function(context, layer) {
+    var gid, img_x, img_y, s_x, s_y;
+    var tw = this.tilewidth;
+    var th = this.tileheight;
+    for (var i = 0, len = layer.data.length; i < len; i++) {
+      gid = layer.data[i];
+      if (gid == 0)
+	continue;
+      gid--;
+      img_x = (gid % (this.tileIW / tw))*tw;
+      img_y = ~~(gid / (this.tileIW / th))*th;
+      s_x = (i % layer.width) * tw + grid.left;
+      s_y = ~~(i / layer.height) * th;
+
+      var h = this.height*this.tileheight;
+
+      var offset = -cam.y;
+      while (offset > this.height*this.tileheight)
+	offset -= this.height*this.tileheight;
+
+      if (offset == 0) {
+	context.drawImage(this.tileset, img_x, img_y, tw, th, s_x - cam.x, s_y, tw, th);
+      } else if (offset <  cheight) {
+	context.drawImage(this.tileset, img_x, img_y, tw, th, s_x - cam.x, s_y + offset, tw, th);
+	context.drawImage(this.tileset, img_x, img_y, tw, th, s_x - cam.x, s_y - h + offset, tw, th);
+	//this.context.drawImage(this.bg, xoffset-left, 0, cw, ch-offset, 0, offset, cw, ch-offset);
+	//this.context.drawImage(this.bg, xoffset-left, this.bg.height - offset, cw, offset, 0, 0, cw, offset);
+      } else {
+	context.drawImage(this.tileset, img_x, img_y, tw, th, s_x - cam.x, s_y - h + offset, tw, th);
+	//this.context.drawImage(this.bg, xoffset-left, this.bg.height - offset, cw, ch, 0, 0, cw, ch);
+      }
+      
+      //context.drawImage(this.tileset, img_x, img_y, tw, th, s_x - cam.x, s_y - cam.y, tw, th);
+    }
+  }
+
+  this.renderLayers = function (context) {
+    for (var l = 0, len = this.layers.length; l < len; l++)
+      this.renderLayer(context, this.layers[l]);
+  }
+}
+
+
+var map = new Map("world");
+
+function init() {
+  bgHandler.init();
+  grid.init(gridWidth, cheight);
+  messageLayer.init();
+  var pw = images.ship.width;//45;
+  var ph = images.ship.height;//52;
+  var px = Math.floor(cwidth/2 - pw/2);
+  var py = cheight-ph;
+  var player = new Player(context, px, py, pw, ph, 10, "grey", 50, 0, 0, accel, accel, 3);//0.4, 0.4);
+  player.addSprite(0, images.ship);
+  loadPlayerSprites(player, 5,45);
+  cam.init(gridWidth, player.w, 0, 0, 0, -5);
+  game.init(player, 3);  
+  game.start();
+  map.load();
+  render();
 }
 
 window.onload = function() {
   init();
 }
+

@@ -57,6 +57,11 @@ function Block(context, x, y, w, h, solid, mass, color, health, vX, vY) {
   this.addCol = function(xoff, yoff, w, h) {
     this.cols.push ({xoff: xoff, yoff: yoff, w: w, h: h});
   }
+
+}
+
+Block.prototype.getSprite = function () {
+  return this.sprite;
 }
 
 Block.prototype.isSolid = function () {
@@ -107,14 +112,22 @@ Block.prototype.isGone = function () {
   return (this.isOutside() || (!this.alive && this.timeToDeath <= 0));
 }
 
+Block.prototype.isVisible = function () {
+  return (this.x < cam.x + cwidth && this.x+this.w > cam.x
+	  && this.y < cheight && this.y + this.h > 0);
+}
+
 Block.prototype.draw = function() {
+
+//  this.drawShadow();
+
   if (this.showHit > 0) {
     this.context.fillStyle = "white";
     this.showHit--;
   } else {
     this.context.fillStyle = this.color;
   }
-
+  
   if (this.hasSprite == true)
     this.context.drawImage(this.sprite, this.x - cam.x, this.y);      
   else
@@ -123,14 +136,24 @@ Block.prototype.draw = function() {
   if (this.hasShield) {
     this.drawShield();
   }
-
+  
 };
+
+Block.prototype.drawCon = function(context) {
+  var oldStyle = context.fillStyle;
+  context.fillStyle = "black";
+  if (this.hasSprite == true)
+    context.drawImage(this.getSprite(), this.x, this.y, this.w, this.h);
+  else
+    context.fillRect(this.x, this.y, this.w, this.h);
+  context.fillStyle = oldStyle;
+}
 
 Block.prototype.drawShield = function() {
   this.context.globalAlpha = 0.3;
   this.context.fillStyle = "#FF55CC"//"rgba(255, 255, 255, 0.5)";
   this.context.beginPath();
-  this.context.arc(this.center().x-cam.x, this.center().y, 40, 0, Math.PI*2, true); 
+  this.context.arc(this.center().x-cam.x, this.center().y, 40, 0, Math.PI*2, true);
   this.context.closePath();
   this.context.fill();
   this.context.globalAlpha = 1;
@@ -147,6 +170,17 @@ Block.prototype.drawCols = function() {
     this.context.fillRect(x, y, w, h);
     console.log(x); console.log(y); console.log(w); console.log(h);
   }
+}
+
+Block.prototype.drawShadow = function() {
+  var x = this.x + 10 - cam.x;
+  var y = this.y + 10;
+  var w = this.w;
+  var h = this.h;
+
+  this.context.fillStyle = "rgba(0,0,0,0.5)";
+  this.context.fillRect(x, y, w, h);
+
 }
 
 Block.prototype.move = function() {
@@ -185,6 +219,18 @@ Block.prototype.collide = function(block) {
   var x, y, w, h, bx, by, bw, bh;
   var collision = false;
 
+  x = this.x; y = this.y; w = this.w; h = this.h;
+  bx = block.x; by = block.y; bw = block.w; bh = block.h;
+  collision = (bx <= x + w &&
+	       x <= bx + bw &&
+	       by <= y + h &&
+	       y <= by + bh);
+  
+  if (collision == true)
+    return true;
+  else
+    return false;
+  /*
   for (var i = 0, len = this.cols.length; i < len; i++) {
     for (var j = 0, blen = block.cols.length; j < blen; j++) {
       x = this.x + this.cols[i].xoff;
@@ -205,7 +251,13 @@ Block.prototype.collide = function(block) {
     if (collision == true)
       break;
   }
-  return collision;
+
+  if (collision == true) {
+    
+    return true;
+  }
+  */
+
 };
 
 Block.prototype.takeDamage = function(damage) {
@@ -288,12 +340,14 @@ function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY, lives
     this.hasSprite = true;
     if (angle == 0) {
       this.sprite = sprite;
+      /*
       this.x += (sprite.width - this.width)/2;
       this.y += (sprite.width - this.width)/2;
       this.w = sprite.width;
       this.h = sprite.height;
+      */
     }
-      this.sprites[angle] = sprite;
+    this.sprites[angle] = sprite;
   }
 }
 
@@ -318,6 +372,7 @@ Player.prototype.mouseMove = function() {
 
   cam.vX = cam.pan*dx;
   cam.x += cam.vX;
+
   if (this.y <= 0) {
     this.y = 0;
     this.vY = -this.vY;
@@ -410,17 +465,26 @@ Player.prototype.move = function(xMove, yMove) {
   
 };
 
+Player.prototype.getSprite = function () {
+  var angle = Math.floor(this.angle/this.angleInc) * this.angleInc;
+  var sprite = this.sprites[angle];
+  if (typeof(sprite) === "undefined") {
+    return this.sprite;
+  }
+  else {
+    return sprite;
+  }
+}
+
+
 Player.prototype.draw = function() {
   this.context.fillStyle = this.color;
-  var angle = Math.floor(this.angle/this.angleInc) * this.angleInc;
+  var sprite = this.getSprite();
 
+//  this.drawShadow();
 
   if (this.hasSprite == true) {
-    if (typeof(this.sprites[angle]) === "undefined" ) {
-      this.context.drawImage(this.sprites[0], this.x - cam.x, this.y);
-    } else {
-      this.context.drawImage(this.sprites[angle], this.x - cam.x, this.y);
-    }
+    this.context.drawImage(sprite, this.x - cam.x, this.y);
   }
   else
     this.context.fillRect(this.x-cam.x, this.y, this.w, this.h);
@@ -430,6 +494,7 @@ Player.prototype.draw = function() {
   }
 
 };
+
 
 Player.prototype.fire = function(type, xDir) {
   var projectile = null;
@@ -566,9 +631,10 @@ Projectile.prototype.deathSpawn = function () {
 }
 
 Projectile.prototype.move = function () {
-//  this.x += cam.vX;
+// this.x += cam.vX;
   Block.prototype.move.call(this);
 }
+
 
 // Some projectiles
 
@@ -578,6 +644,11 @@ function Laser(context, c, y, vX, vY) {
 Laser.prototype = Object.create(Projectile.prototype);
 Laser.prototype.deathSpawn = function () {
   return [];
+}
+
+Laser.prototype.draw = function () {
+  this.context.fillStyle = this.color;
+  this.context.fillRect(this.x-cam.x, this.y, this.w, this.h);
 }
 
 function Rocket(context, c, y, vX, vY, aX, aY) {
