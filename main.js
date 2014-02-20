@@ -51,7 +51,9 @@ function Game() {
     this.enemies = [];
     this.projectiles = [];
     this.misc = [];
+    this.ground = [];
     this.enemyProjectiles = [];
+    this.bombs = [];
     this.numLevels = numLevels;
     this.level = null;
     this.levelNum = 0;
@@ -66,14 +68,16 @@ function Game() {
   };
   
   this.startLevel = function (level) {
-    this.player.reset(this.width/2, this.height-10, 50);
+    this.player.reset(50);
     this.playerAlive = true;
     this.player.lives = 3;
     this.grace = 120;
     this.enemies = [];
     this.projectiles = [];
     this.misc = [];
+    this.ground = [];
     this.enemyProjectiles = [];
+    this.bombs = [];
     this.level = level;
     this.levelCompleted = false;
     this.currentWave = null;
@@ -107,6 +111,10 @@ function Game() {
 
   this.addEProjectiles = function (projectiles) {
     this.enemyProjectiles = this.enemyProjectiles.concat(projectiles);
+  }
+
+  this.addBombs = function (bombs) {
+    this.bombs = this.bombs.concat(bombs);
   }
   
 }
@@ -184,31 +192,31 @@ Game.prototype.handleInput = function () {
   */
   if (keys["a"]) {
     if (player.cooldowns.laser == 0) {
-      this.projectiles = this.projectiles.concat(player.fire("dualLaser", -1));
+      this.addProjectiles(player.fire("dualLaser", -1));
       player.cooldowns.laser = player.cd;
     }
   }
   if (keys["d"]) {
     if (player.cooldowns.laser == 0) {
-      this.projectiles = this.projectiles.concat(player.fire("dualLaser", 1));
+      this.addProjectiles(player.fire("dualLaser", 1));
       player.cooldowns.laser = player.cd;
     }
   }
   if (keys["s"]) {
-    if (player.cooldowns.laser == 0) {
-      this.projectiles = this.projectiles.concat(player.fire("dualLaser", 0));
-      player.cooldowns.laser = player.cd;
+    if (player.cooldowns.rocket == 0) {
+      this.addBombs(player.fire("bomb", 0));
+      player.cooldowns.rocket = player.cd;
     }
   }
   if (keys["x"]) {
     if (player.cooldowns.laser == 0) {
-      this.projectiles = this.projectiles.concat(player.fire("quadLaser", 0));
+      this.addProjectiles(player.fire("quadLaser", 0));
       player.cooldowns.laser = player.cd;
     }
   }
   if (keys["z"] && player.rockets > 0) {
     if (player.cooldowns.rocket == 0) {
-      this.projectiles = this.projectiles.concat(player.fire("rocket", 0));
+      this.addProjectiles(player.fire("rocket", 0));
       player.cooldowns.rocket = player.cd;
       player.rockets -= 1;
     }
@@ -423,6 +431,34 @@ Game.prototype.updateMisc = function () {
   }
 }
 
+Game.prototype.updateBombs = function () {
+  var bomb = null;
+  for (var i = this.bombs.length - 1; i >= 0; i--) {
+    bomb = this.bombs[i];
+    bomb.move();
+    if (bomb.isGone()) {
+      this.bombs.splice(i,1);
+      this.addBombs(bomb.deathSpawn());
+      delete bomb;
+    } else
+      bomb.draw();
+  }
+}
+
+Game.prototype.updateGround = function () {
+  var object = null;
+  for (var i = this.ground.length - 1; i >= 0; i--) {
+    object = this.ground[i];
+    object.move();
+    if (object.isGone()) {
+      this.ground.splice(i,1);
+      delete object;
+    } else
+      object.draw();
+  }
+}
+
+
 Game.prototype.updateHud = function () {
   this.hud.update();
 };
@@ -432,9 +468,11 @@ Game.prototype.update = function () {
   this.frameReset();
   this.updateWave();
   this.updatePlayer();
+  this.updateGround();
+  this.updateBombs();
   this.updateEnemies();
   this.updateMisc();
-  
+
   // draw player after enemies and misc but before projecties
   if (this.playerAlive && !this.player.isOutside()) {
     this.player.time++;
@@ -511,7 +549,6 @@ var cam = new Camera();
 var grid = new Grid();
 var drag = 1; //0.5;
 var accel = 1;
-var gridWidth = 940;
 
 
 function loadPlayerSprites(player, inc, max) {
@@ -537,100 +574,16 @@ function loadPlayerSprites(player, inc, max) {
 function render() {
   requestAnimationFrame(render);
   bgHandler.drawBackgrounds();
+  //map.drawLayers(bgHandler.bgContext, 0, 0, cwidth, cheight);
   game.update();
   messageLayer.render();
-  map.renderLayers(bgHandler.bgContext);
 }
-
-
-function Map (name) {
-  this.name = name;
-  this.data = null;
-  this.tileset = null;
-  this.width = 0;
-  this.height = 0;
-  this.tilewidth = 0;
-  this.tileheight = 0;
-  this.tileIW = 0;
-  this.tileIH = 0;
-  this.layers = [];
-
-  this.load = function () {
-    $.getJSON("maps/" + this.name + ".json").done($.proxy(this.loadTileset, this));	      
-  };
-
-  this.loadTileset = function(json) {
-    this.data = json;
-    this.width = json.width;
-    this.height = json.height;
-    this.tilewidth = json.tilewidth;
-    this.tileheight = json.tileheight;
-    this.tileIW = json.tilesets[0].imagewidth;
-    this.tileIH = json.tilesets[0].imageheight;
-    this.tileset = $("<img />", {src: json.tilesets[0].image})[0];
-    this.tileset.onload = $.proxy(this.loadLayers, this);
-  };
-
-  this.loadLayers = function() {
-    for (var l = 0, len = this.data.layers.length; l < len; l++) {
-      this.layers[l] = this.data.layers[l];
-      this.layers[l].matrix = [];
-      for (var i = 0; i < this.height; i++) {
-	this.layers[l].matrix[i] = [];
-	for (var j = 0; j < this.width; j++) {
-	  this.layers[l].matrix[i][j] = this.layers[l].data[this.height*i + j];
-	}
-      }
-    }
-  }
-
-  this.renderLayer = function(context, layer) {
-    var gid, img_x, img_y, s_x, s_y;
-    var tw = this.tilewidth;
-    var th = this.tileheight;
-    for (var i = 0, len = layer.data.length; i < len; i++) {
-      gid = layer.data[i];
-      if (gid == 0)
-	continue;
-      gid--;
-      img_x = (gid % (this.tileIW / tw))*tw;
-      img_y = ~~(gid / (this.tileIW / th))*th;
-      s_x = (i % layer.width) * tw + grid.left;
-      s_y = ~~(i / layer.height) * th;
-
-      var h = this.height*this.tileheight;
-
-      var offset = -cam.y;
-      while (offset > this.height*this.tileheight)
-	offset -= this.height*this.tileheight;
-
-      if (offset == 0) {
-	context.drawImage(this.tileset, img_x, img_y, tw, th, s_x - cam.x, s_y, tw, th);
-      } else if (offset <  cheight) {
-	context.drawImage(this.tileset, img_x, img_y, tw, th, s_x - cam.x, s_y + offset, tw, th);
-	context.drawImage(this.tileset, img_x, img_y, tw, th, s_x - cam.x, s_y - h + offset, tw, th);
-	//this.context.drawImage(this.bg, xoffset-left, 0, cw, ch-offset, 0, offset, cw, ch-offset);
-	//this.context.drawImage(this.bg, xoffset-left, this.bg.height - offset, cw, offset, 0, 0, cw, offset);
-      } else {
-	context.drawImage(this.tileset, img_x, img_y, tw, th, s_x - cam.x, s_y - h + offset, tw, th);
-	//this.context.drawImage(this.bg, xoffset-left, this.bg.height - offset, cw, ch, 0, 0, cw, ch);
-      }
-      
-      //context.drawImage(this.tileset, img_x, img_y, tw, th, s_x - cam.x, s_y - cam.y, tw, th);
-    }
-  }
-
-  this.renderLayers = function (context) {
-    for (var l = 0, len = this.layers.length; l < len; l++)
-      this.renderLayer(context, this.layers[l]);
-  }
-}
-
-
-var map = new Map("world");
 
 function init() {
   bgHandler.init();
+  var map = new Map("maps/rocks.json");
+  var gridWidth = 960;
+  map.load();
   grid.init(gridWidth, cheight);
   messageLayer.init();
   var pw = images.ship.width;//45;
@@ -640,10 +593,10 @@ function init() {
   var player = new Player(context, px, py, pw, ph, 10, "grey", 50, 0, 0, accel, accel, 3);//0.4, 0.4);
   player.addSprite(0, images.ship);
   loadPlayerSprites(player, 5,45);
-  cam.init(gridWidth, player.w, 0, 0, 0, -5);
+  cam.init(grid.width, player.w, 0, 0, 0, -5);
   game.init(player, 3);  
   game.start();
-  map.load();
+
   render();
 }
 

@@ -119,7 +119,7 @@ Block.prototype.isVisible = function () {
 
 Block.prototype.draw = function() {
 
-//  this.drawShadow();
+  this.drawShadow();
 
   if (this.showHit > 0) {
     this.context.fillStyle = "white";
@@ -173,13 +173,29 @@ Block.prototype.drawCols = function() {
 }
 
 Block.prototype.drawShadow = function() {
-  var x = this.x + 10 - cam.x;
-  var y = this.y + 10;
-  var w = this.w;
-  var h = this.h;
+  var w = 0.75*this.w;
+  var h = 0.75*this.h;
+  var x = this.x + this.w/3 - cam.x;
+  var y = this.y + this.h/2 ;
+  var ctx = bgHandler.bgContext;
 
-  this.context.fillStyle = "rgba(0,0,0,0.5)";
-  this.context.fillRect(x, y, w, h);
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+
+  if (this.hasSprite) {
+    var sprite = this.getSprite();
+    var sc = this.shadowContext;
+    // Draw mask to buffer
+    sc.save();
+    sc.clearRect(0, 0, sc.canvas.width, sc.canvas.height);
+    sc.drawImage(sprite, 0, 0)//, sprite.width, sprite.height, x, y, w, h);//, sprite.width, sprite.height, 0, 0, sprite.width, sprite.height);
+    // Draw the color only where the mask exists (using source-in)
+    sc.fillStyle = "rgba(0,0,0,0.5)";
+    sc.globalCompositeOperation = "source-in";
+    sc.fillRect(0, 0, sc.canvas.width, sc.canvas.height);
+    sc.restore();
+    ctx.drawImage(sc.canvas, 0, 0, sc.canvas.width, sc.canvas.height, x, y, w, h);//, sprite.width, sprite.height, x, y, w, h);
+  } else
+    ctx.fillRect(x, y, w, h);
 
 }
 
@@ -218,7 +234,8 @@ Block.prototype.move = function() {
 Block.prototype.collide = function(block) {
   var x, y, w, h, bx, by, bw, bh;
   var collision = false;
-
+  
+  /*
   x = this.x; y = this.y; w = this.w; h = this.h;
   bx = block.x; by = block.y; bw = block.w; bh = block.h;
   collision = (bx <= x + w &&
@@ -230,7 +247,8 @@ Block.prototype.collide = function(block) {
     return true;
   else
     return false;
-  /*
+  */
+
   for (var i = 0, len = this.cols.length; i < len; i++) {
     for (var j = 0, blen = block.cols.length; j < blen; j++) {
       x = this.x + this.cols[i].xoff;
@@ -252,12 +270,7 @@ Block.prototype.collide = function(block) {
       break;
   }
 
-  if (collision == true) {
-    
-    return true;
-  }
-  */
-
+  return collision;
 };
 
 Block.prototype.takeDamage = function(damage) {
@@ -340,6 +353,10 @@ function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY, lives
     this.hasSprite = true;
     if (angle == 0) {
       this.sprite = sprite;
+      var shadow = document.createElement("canvas");
+      shadow.width = sprite.width;
+      shadow.height = sprite.height;
+      this.shadowContext = shadow.getContext("2d");
       /*
       this.x += (sprite.width - this.width)/2;
       this.y += (sprite.width - this.width)/2;
@@ -481,7 +498,7 @@ Player.prototype.draw = function() {
   this.context.fillStyle = this.color;
   var sprite = this.getSprite();
 
-//  this.drawShadow();
+  this.drawShadow();
 
   if (this.hasSprite == true) {
     this.context.drawImage(sprite, this.x - cam.x, this.y);
@@ -506,6 +523,8 @@ Player.prototype.fire = function(type, xDir) {
   } else if (type == "quadLaser") {
     proj = [new Laser(this.context, center-5, this.y - 1, 5*xDir, -10), new Laser(this.context, center+5, this.y - 1, 5*xDir, -10),
 	    new Laser(this.context, center-21, this.y + 20, 0, -10), new Laser(this.context, center+21, this.y + 20, 0, -10)];
+  } else if (type == "bomb") {
+    proj = [new Bomb(this.context, center, this.y, this.vX, this.vY-5, 0, 0)];      
   } else {
     proj = [new Laser(this.context, center, this.y - 1, 0, -10)];
   }
@@ -635,6 +654,8 @@ Projectile.prototype.move = function () {
   Block.prototype.move.call(this);
 }
 
+Projectile.prototype.drawShadow = function () {
+}
 
 // Some projectiles
 
@@ -658,7 +679,7 @@ Rocket.prototype = Object.create(Projectile.prototype);
 Rocket.prototype.move = function () {
   this.vX += this.aX - drag*this.vX / this.mass;
   this.vY += this.aY - drag*this.vY / this.mass;
-  
+
   this.x += this.vX;
   this.y += this.vY - cam.vY;
 };
@@ -691,12 +712,48 @@ Rocket.prototype.deathSpawn = function () {
 }
 
 function Explosion(context, x, y, h, w, d, vX, vY, tod) {
-  Projectile.call(this, context, x, y, h, w, 0, "yellow", d, vX, vY);
+  Projectile.call(this, context, x, y, h, w, 0, "yellow", d, vX, vY-cam.vY);
   this.alive = false;
   this.timeToDeath = tod;
 }
 
 Explosion.prototype = Object.create(Projectile.prototype);
+
+function Bomb(context, c, y, vX, vY, aX, aY) {
+  Projectile.call(this, context, c-10, y, 21, 30, 20, "white", 100, vX, vY, aX, aY);
+  this.alive = false;
+  this.timeToDeath = 60;
+}
+Bomb.prototype = Object.create(Projectile.prototype);
+Bomb.prototype.drawShadow = Block.prototype.drawShadow;
+
+Bomb.prototype.move = function () {
+  var f = 89/90;
+
+  this.vX += this.aX - drag*this.vX / this.mass;
+  this.vY += this.aY - drag*this.vY / this.mass;
+
+  console.log(this.vY);
+
+  this.x += this.vX;
+  this.y += this.vY;
+
+  this.x += (1-f)*this.w / 2;
+  this.y += (1-f)*this.h / 2;
+  this.w *= f;
+  this.h *= f;
+
+  this.timeToDeath--;
+};
+
+Bomb.prototype.deathSpawn = Rocket.prototype.deathSpawn;
+
+function House(context, x, y, w, h, mass, color, health) {
+  Block.call(this, context, x, y, w, h, true, mass, color, health, 0, -cam.vY);
+}
+
+
+
 /***
  ** 
  ** End blargh
