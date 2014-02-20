@@ -733,8 +733,6 @@ Bomb.prototype.move = function () {
   this.vX += this.aX - drag*this.vX / this.mass;
   this.vY += this.aY - drag*this.vY / this.mass;
 
-  console.log(this.vY);
-
   this.x += this.vX;
   this.y += this.vY;
 
@@ -746,7 +744,19 @@ Bomb.prototype.move = function () {
   this.timeToDeath--;
 };
 
-Bomb.prototype.deathSpawn = Rocket.prototype.deathSpawn;
+Bomb.prototype.deathSpawn = function () {
+  map.context.fillStyle = "rgba(0,0,0,0.8)";
+  var x = this.x - 15 + cam.len;
+  var y = this.y - 15 + map.height - cheight + cam.y;
+
+  while (y < 0) {
+    y+=map.height;
+  }
+
+  map.context.fillRect(x, y, this.w+30, this.h+30);
+
+  return (Rocket.prototype.deathSpawn.call(this));
+}
 
 function House(context, x, y, w, h, mass, color, health) {
   Block.call(this, context, x, y, w, h, true, mass, color, health, 0, -cam.vY);

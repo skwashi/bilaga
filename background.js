@@ -93,8 +93,8 @@ function BGHandler() {
     this.bgWidth = this.bgCanvas.width;
     this.bgHeight = this.bgCanvas.height;
     this.backgrounds = [];
-    this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.background, 1/9)); // 1/9
-    this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.stars, 1/6)); // 1/6
+    //this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.background, 1/9)); // 1/9
+    //this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.stars, 1/6)); // 1/6
     //this.backgrounds.push(new Background(this.bgContext, this.bgWidth, this.bgHeight, images.bg, 1)); 
   };
   

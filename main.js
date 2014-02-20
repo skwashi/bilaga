@@ -579,9 +579,10 @@ function render() {
   messageLayer.render();
 }
 
+var map = new Map("maps/world.json");
 function init() {
   bgHandler.init();
-  var map = new Map("maps/rocks.json");
+
   var gridWidth = 960;
   map.load();
   grid.init(gridWidth, cheight);
@@ -593,7 +594,7 @@ function init() {
   var player = new Player(context, px, py, pw, ph, 10, "grey", 50, 0, 0, accel, accel, 3);//0.4, 0.4);
   player.addSprite(0, images.ship);
   loadPlayerSprites(player, 5,45);
-  cam.init(grid.width, player.w, 0, 0, 0, -5);
+  cam.init(grid.width, player.w, 0, 0, 0, -3);
   game.init(player, 3);  
   game.start();
 

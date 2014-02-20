@@ -55,8 +55,8 @@ function Map (filename) {
     this.tileHeight = json.tileheight;
     this.numRows = json.height;
     this.numColumns = json.width;
-    this.width = this.numRows * this.tileWidth;
-    this.height = this.numColumns * this.tileHeight;
+    this.width = this.numColumns * this.tileWidth;
+    this.height = this.numRows * this.tileHeight;
     this.canvas = document.createElement("canvas");
     this.canvas.width = this.width;
     this.canvas.height = this.height;
@@ -147,6 +147,7 @@ function Map (filename) {
   this.renderTileLayers = function () {
     for (var l = 0, len = this.tileLayers.length; l < len; l++)
       this.renderTileLayer(this.tileLayers[l]);
+    bgHandler.add(this.canvas,1);
   }
 
   this.drawLayer = function(context, num, x, y, width, height) {
