@@ -345,7 +345,7 @@ function Player(context, x, y, w, h, mass, color, rockets, vX, vY, aX, aY, lives
     this.vY = 0;
     this.time = 0;
     this.rockets = rockets;
-    this.cooldowns = {laser: 0, rocket: 0}
+    this.cooldowns = {laser: 0, rocket: 0};
     this.hasShield = true;
   };
 
